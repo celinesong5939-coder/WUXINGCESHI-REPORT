@@ -171,11 +171,15 @@
 
                     console.log("云端原始数据:", rawData);
 
-                    // 智能兼容逻辑：防止后端返回结构变化
+                    // ★★★★★ 核心修复：万能兼容模式 ★★★★★
+                    // 1. 尝试找到核心数据层
                     const coreData = rawData.attributes || rawData.meta || rawData;
-                    
+
+                    // 2. 混合赋值：既保留原始层级（meta），也保留扁平层级
+                    // 这样无论 HTML 模板里写 {{ reportData.meta.xxx }} 还是 {{ reportData.xxx }} 都能读到
                     reportData.value = {
-                        ...coreData, 
+                        ...rawData,         // 保留原始结构（例如 rawData.meta）
+                        ...coreData,        // 兼容扁平结构（例如 coreData.color）
                         sections: rawData.sections || coreData.sections || []
                     };
 
@@ -215,5 +219,6 @@
 </script>
 </body>
 </html>
+
 
 
