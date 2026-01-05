@@ -128,57 +128,72 @@
     </div>
 
     <script>
-        // ★★★ 这是最终的、已适配您 HTML 的、调用云端后端的 Vue 脚本 ★★★
-        const { createApp, ref, onMounted, computed } = Vue;
+    // ★★★ 这是针对 401 授权错误的最终修正版 ★★★
+    const { createApp, ref, onMounted, computed } = Vue;
 
-        const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
+    // ★ 1. 定义您的配置信息
+    const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
+    // ★ 1a. ★★★ 新增：必须在这里也提供 ANON_KEY 作为“通行证” ★★★
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
-        createApp({
-            setup() {
-                const isLoading = ref(true);
-                const fetchError = ref('');
-                const reportData = ref(null);
+    createApp({
+        setup() {
+            const isLoading = ref(true);
+            const fetchError = ref('');
+            const reportData = ref(null);
 
-                onMounted(async () => {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    try {
-                        const response = await fetch(`${REPORT_FUNCTION_URL}?${urlParams.toString()}`);
-                        const data = await response.json();
-                        if (!response.ok) {
-                            throw new Error(data.message || '无法加载报告数据。请返回首页重试。');
+            onMounted(async () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                try {
+                    // ★ 2. ★★★ 修正：在 fetch 请求中添加必需的 headers ★★★
+                    const response = await fetch(`${REPORT_FUNCTION_URL}?${urlParams.toString()}`, {
+                        method: 'GET', // 明确指定请求方法
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // 'apikey' 和 'Authorization' 是 Supabase 要求的“双重通行证”
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
                         }
-                        reportData.value = data;
-                        console.log("成功获取云端报告:", data);
-                    } catch (error) {
-                        console.error("加载报告失败:", error);
-                        fetchError.value = error.message;
-                    } finally {
-                        isLoading.value = false;
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.message || '无法加载报告数据。请返回首页重试。');
                     }
-                });
-                
-                // ★ 为图腾能量环提供动态颜色
-                const conicGradientStyle = computed(() => {
-                    if (!reportData.value) return {};
-                    // 这是一个示例能量占比，您可以根据后端返回的数据进行更精确的计算
-                    const mainPercent = 60; 
-                    const subPercent = 30;
-                    return `conic-gradient(${reportData.value.main.color} 0% ${mainPercent}%, ${reportData.value.second.color} ${mainPercent}% ${mainPercent + subPercent}%, ${reportData.value.wandering.color} ${mainPercent + subPercent}% 100%)`;
-                });
+                    
+                    reportData.value = data;
+                    console.log("成功获取云端报告:", data);
 
-                const saveAsImage = () => {
-                    alert("截图功能需部署在服务器环境使用 (html2canvas跨域限制)。\n当前环境请直接使用浏览器截图。");
-                };
+                } catch (error) {
+                    console.error("加载报告失败:", error);
+                    fetchError.value = error.message;
+                } finally {
+                    isLoading.value = false;
+                }
+            });
+            
+            const conicGradientStyle = computed(() => {
+                if (!reportData.value) return {};
+                const mainPercent = 60; 
+                const subPercent = 30;
+                return `conic-gradient(${reportData.value.main.color} 0% ${mainPercent}%, ${reportData.value.second.color} ${mainPercent}% ${mainPercent + subPercent}%, ${reportData.value.wandering.color} ${mainPercent + subPercent}% 100%)`;
+            });
 
-                return { 
-                    isLoading,
-                    fetchError,
-                    reportData, 
-                    conicGradientStyle, // ★ 必须返回给模板使用
-                    saveAsImage 
-                };
-            }
-        }).mount('#report-app');
-    </script>
+            const saveAsImage = () => {
+                alert("截图功能需部署在服务器环境使用 (html2canvas跨域限制)。\n当前环境请直接使用浏览器截图。");
+            };
+
+            return { 
+                isLoading,
+                fetchError,
+                reportData, 
+                conicGradientStyle,
+                saveAsImage 
+            };
+        }
+    }).mount('#report-app');
+</script>
+
 </body>
 </html>
+
