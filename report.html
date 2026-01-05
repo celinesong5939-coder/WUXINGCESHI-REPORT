@@ -131,6 +131,9 @@
         const { createApp, ref, onMounted, computed } = Vue;
 
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
+        
+        // ★★★ 必须填入你的 Supabase Anon Key (在 Dashboard -> Project Settings -> API 找) ★★★
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3M...请在这里填入你的长字符串Key...'; 
 
         createApp({
             setup() {
@@ -141,30 +144,30 @@
                 onMounted(async () => {
                     const urlParams = new URLSearchParams(window.location.search);
                     try {
-                        const response = await fetch(`${REPORT_FUNCTION_URL}?${urlParams.toString()}`);
-                        const rawData = await response.json(); // 获取原始数据
+                        // ★★★ 核心修改：增加了 headers 带上钥匙 ★★★
+                        const response = await fetch(`${REPORT_FUNCTION_URL}?${urlParams.toString()}`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                            }
+                        });
+
+                        const rawData = await response.json();
                         
+                        // 处理 401 或其他错误
                         if (!response.ok) {
-                            throw new Error(rawData.message || '无法加载报告数据。请返回首页重试。');
+                            throw new Error(rawData.message || `请求失败: ${response.status}`);
                         }
 
                         console.log("云端原始数据:", rawData);
 
-                        // ★★★ 智能解包逻辑 (核心修改) ★★★
-                        // 1. 优先找 attributes (你最新修改的)
-                        // 2. 如果没找到，找 meta (你之前的版本)
-                        // 3. 如果都没找到，假设数据就在顶层
+                        // 智能兼容逻辑：不管后端返回 attributes 还是 meta，都能读
                         const coreData = rawData.attributes || rawData.meta || rawData;
-
-                        // 组装最终给 Vue 使用的数据对象
-                        // 我们把核心数据 (main, second...) 展开到顶层，
-                        // 同时保留 sections (不管它在哪里)
+                        
                         reportData.value = {
                             ...coreData, 
                             sections: rawData.sections || coreData.sections || []
                         };
-                        
-                        console.log("前端渲染使用的数据:", reportData.value);
 
                     } catch (error) {
                         console.error("加载报告失败:", error);
@@ -174,19 +177,13 @@
                     }
                 });
                 
-                // 能量环计算
                 const conicGradientStyle = computed(() => {
-                    // 安全检查：如果数据还没准备好，或者 main 属性不存在，返回空
                     if (!reportData.value || !reportData.value.main) return {};
-                    
                     const mainPercent = 60; 
                     const subPercent = 30;
-                    
-                    // 使用 ?. 防止报错 (Optional Chaining)
                     const c1 = reportData.value.main?.color || '#333';
                     const c2 = reportData.value.second?.color || '#333';
                     const c3 = reportData.value.wandering?.color || '#333';
-
                     return `conic-gradient(${c1} 0% ${mainPercent}%, ${c2} ${mainPercent}% ${mainPercent + subPercent}%, ${c3} ${mainPercent + subPercent}% 100%)`;
                 });
 
@@ -194,17 +191,9 @@
                     alert("截图功能需部署在服务器环境使用 (html2canvas跨域限制)。\n当前环境请直接使用浏览器截图。");
                 };
 
-                return { 
-                    isLoading,
-                    fetchError,
-                    reportData, 
-                    conicGradientStyle, 
-                    saveAsImage 
-                };
+                return { isLoading, fetchError, reportData, conicGradientStyle, saveAsImage };
             }
         }).mount('#report-app');
     </script>
 </body>
 </html>
-
-
