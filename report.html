@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全息档案库 - V60.0 Cloud Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- ★ 已移除对 _database.js 的引用 -->
+
+    <style>
+        /* 您的所有精美样式都原封不动地保留了下来 */
+        :root { --c-bg: #020617; }
+        body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
+        .totem-container { position: relative; width: 340px; height: 340px; margin: 0 auto 2rem auto; overflow: visible !important; }
+        .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+        .totem-glow-main { width: 220px; height: 220px; border-radius: 50%; filter: blur(25px); opacity: 0.7; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
+        .totem-glow-sub { width: 300px; height: 300px; border-radius: 50%; filter: blur(40px); opacity: 0.3; z-index: 1; animation: breathe-soft 6s ease-in-out infinite; }
+        .totem-outer-ring { width: 240px; height: 240px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(0,0,0,0.5) inset; z-index: 5; }
+        .totem-inner-ring { width: 220px; height: 220px; border-radius: 50%; mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); opacity: 1; z-index: 4; }
+        .totem-ring-overlay { width: 220px; height: 220px; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 3px 3px 6px rgba(255,255,255,0.2), inset -3px -3px 6px rgba(0,0,0,0.6), 3px 3px 10px rgba(0,0,0,0.5); mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); }
+        .totem-orbit-wrapper { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; z-index: 100; pointer-events: none; }
+        .totem-orbit-inner { width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); animation: orbit-spin 12s linear infinite; }
+        .totem-planet { position: absolute; top: 50%; right: -6px; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+        .totem-bg-icon { font-size: 10rem; opacity: 0.4; z-index: 3; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); pointer-events: none; }
+        .totem-char { font-size: 5.5rem; font-weight: 900; z-index: 11; text-shadow: 0 5px 30px rgba(0,0,0,1); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        @keyframes breathe-tight { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; } }
+        @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.5; } }
+        @keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
+        .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.1); }
+        .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; }
+        .section-title { font-size: 1.5rem; font-weight: bold; color: #f1f5f9; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-subtitle { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; display: block; }
+        .report-content p { margin-bottom: 1rem; line-height: 1.8; text-align: justify; }
+        .report-content strong { color: #e2e8f0; font-weight: bold; }
+        .highlight { color: #d97706; }
+        .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
+        .save-btn:active { transform: scale(0.9); }
+    </style>
+</head>
+<body>
+    <div id="report-app">
+
+        <!-- 状态一：正在加载 (初始显示) -->
+        <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
+            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 正在从云端解密档案...
+        </div>
+
+        <!-- 状态二：发生错误 -->
+        <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-4">
+            <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-6"></i>
+            <h2 class="text-2xl font-bold mb-2 text-white">报告加载失败</h2>
+            <p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
+        </div>
+
+        <!-- 状态三：成功加载 (您的完整报告HTML结构) -->
+        <template v-else-if="reportData">
+            <!-- 悬浮保存按钮 -->
+            <div class="save-btn" @click="saveAsImage" title="保存为图片"><i class="fa-solid fa-camera"></i></div>
+            
+            <div class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
+                <!-- 头部 -->
+                <header class="text-center mb-16 fade-in-up">
+                    
+                    <!-- 升级后的全景动态图腾 -->
+                    <div class="totem-container">
+                        <!-- ★ 修正路径 -->
+                        <div class="totem-glow-sub abs-center" :style="{ backgroundColor: reportData.second.color }"></div>
+                        <div class="totem-glow-main abs-center" :style="{ backgroundColor: reportData.main.color }"></div>
+                        <div class="totem-outer-ring abs-center" :style="{ borderColor: reportData.main.color }"></div>
+                        <!-- ★ 使用计算属性 conicGradientStyle -->
+                        <div class="totem-inner-ring abs-center" :style="conicGradientStyle"></div>
+                        <div class="totem-ring-overlay abs-center"></div>
+                        <div class="totem-orbit-wrapper abs-center">
+                            <div class="totem-orbit-inner">
+                                <!-- ★ 修正路径 -->
+                                <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color }"></div>
+                            </div>
+                        </div>
+                        <!-- ★ 修正路径 -->
+                        <i :class="['totem-bg-icon', 'abs-center', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
+                        <div class="totem-char abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${reportData.main.color} 100%)` }">
+                            <!-- ★ 修正路径 -->
+                            {{ reportData.main.char }}
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <p class="text-amber-600 text-xs tracking-[0.5em] uppercase">Project Archetype V60 Cloud</p>
+                        <!-- ★ 修正路径 -->
+                        <h1 class="text-4xl font-black text-white tracking-widest">{{ reportData.comboName }}</h1>
+                    </div>
+                </header>
+
+                <!-- 深度解释 (★ 修正：使用后端返回的 hookText) -->
+                <div class="mb-12 text-center px-8 py-6 bg-slate-900/50 rounded border border-amber-900/30 fade-in-up" style="animation-delay: 0.2s">
+                    <p class="text-amber-500/80 text-xs font-bold uppercase tracking-widest mb-3">Archetype Disguise</p>
+                    <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText"></div>
+                </div>
+
+                <!-- 章节循环 (★ 暂时禁用，因为后端目前不返回 sections) -->
+                <!-- 
+                <div class="space-y-8">
+                    <section v-for="(section, index) in reportData.sections" :key="index" class="report-card fade-in-up" :style="{ animationDelay: ((index + 3) * 0.1) + 's' }">
+                        <div class="section-num">{{ '0' + (index + 1) }}</div>
+                        <div class="section-title">{{ section.title }}</div>
+                        <span class="section-subtitle">{{ section.subtitle }}</span>
+                        <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
+                        <div v-else class="space-y-6 mt-4">
+                            ...
+                        </div>
+                    </section>
+                </div>
+                -->
+                
+                <footer class="text-center text-slate-600 text-xs mt-16 pb-8 border-t border-slate-900 pt-8">
+                    <p>&copy; 2025 Source Code Archetype. All Rights Reserved.</p>
+                </footer>
+            </div>
+        </template>
+    </div>
+
+    <script>
+        // ★★★ 这是最终的、已适配您 HTML 的、调用云端后端的 Vue 脚本 ★★★
+        const { createApp, ref, onMounted, computed } = Vue;
+
+        const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
+
+        createApp({
+            setup() {
+                const isLoading = ref(true);
+                const fetchError = ref('');
+                const reportData = ref(null);
+
+                onMounted(async () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    try {
+                        const response = await fetch(`${REPORT_FUNCTION_URL}?${urlParams.toString()}`);
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(data.message || '无法加载报告数据。请返回首页重试。');
+                        }
+                        reportData.value = data;
+                        console.log("成功获取云端报告:", data);
+                    } catch (error) {
+                        console.error("加载报告失败:", error);
+                        fetchError.value = error.message;
+                    } finally {
+                        isLoading.value = false;
+                    }
+                });
+                
+                // ★ 为图腾能量环提供动态颜色
+                const conicGradientStyle = computed(() => {
+                    if (!reportData.value) return {};
+                    // 这是一个示例能量占比，您可以根据后端返回的数据进行更精确的计算
+                    const mainPercent = 60; 
+                    const subPercent = 30;
+                    return `conic-gradient(${reportData.value.main.color} 0% ${mainPercent}%, ${reportData.value.second.color} ${mainPercent}% ${mainPercent + subPercent}%, ${reportData.value.wandering.color} ${mainPercent + subPercent}% 100%)`;
+                });
+
+                const saveAsImage = () => {
+                    alert("截图功能需部署在服务器环境使用 (html2canvas跨域限制)。\n当前环境请直接使用浏览器截图。");
+                };
+
+                return { 
+                    isLoading,
+                    fetchError,
+                    reportData, 
+                    conicGradientStyle, // ★ 必须返回给模板使用
+                    saveAsImage 
+                };
+            }
+        }).mount('#report-app');
+    </script>
+</body>
+</html>
