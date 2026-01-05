@@ -258,11 +258,11 @@
         </transition>
 
 
-   <script>
+  <script>
     const { createApp, ref, computed } = Vue;
 
-    // (前端不再需要任何 Supabase 的密钥和配置)
-     // 4. 定义您应用中其余的常量 (这些是您原有的，保持不变)
+    // ★★★ 修正：我们不再需要在这里定义 OWNER_CODE，因为验证在后端完成 ★★★
+
         const ATTRIBUTES = {
             metal: { color: '#cbd5e1', char: '金', icon: 'fa-solid fa-mountain', nature: '冷峻、秩序', danger: '过刚则折' },
             wood: { color: '#10b981', char: '木', icon: 'fa-solid fa-tree', nature: '仁慈、生长', danger: '优柔寡断' },
@@ -406,29 +406,29 @@
             };
            
             // =================================================================
-            //  ★★★ 最终版解锁函数：仅负责收集数据并跳转 ★★★
+            //  ★★★ 最终修正版解锁函数：仅负责收集数据并跳转 ★★★
             // =================================================================
             const verifyAndUnlock = () => {
-                const code = unlockCode.value.trim();
-                if (!code) {
+                // ★★★ 核心修正：我们直接使用 unlockCode.value 作为要传递的 code ★★★
+                const codeToVerify = unlockCode.value.trim();
+                
+                if (!codeToVerify) {
                     unlockError.value = "请输入您的解锁密钥。";
                     return;
                 }
                 
-                // 不再需要 isVerifying，因为我们直接跳转
-                console.log(`准备跳转到报告页，携带密钥: ${code}`);
+                console.log(`准备跳转到报告页，携带密钥: ${codeToVerify}`);
 
-                // 收集所有需要传递给报告页的参数
                 const params = new URLSearchParams({
                     g: gender.value,
                     m: getAttributeKey(resultData.value.main),
                     s: getAttributeKey(resultData.value.second),
                     w: getAttributeKey(resultData.value.wandering),
                     l: resultData.value.missingKey,
-                    code: code // ★ 把用户输入的密钥一起带过去
+                    // ★★★ 核心修正：确保传递的是用户输入的原始值 ★★★
+                    code: codeToVerify 
                 });
                 
-                // 直接跳转到 report.html，并将所有参数附在 URL 后面
                 window.location.href = `report.html?${params.toString()}`;
             };
 
@@ -473,3 +473,4 @@
 </script>
 </body>
 </html>
+
