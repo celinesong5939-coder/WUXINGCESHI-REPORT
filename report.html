@@ -15,110 +15,120 @@
         body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
         
         /* =========================================
-           1. 3D 行星引擎 (Planet Engine) 核心样式
+           3D 行星引擎 V3.0 (最终修正版样式)
            ========================================= */
         .planet-box {
             position: relative;
-            width: 320px; height: 320px;
+            width: 340px; height: 340px; /* 容器扩大 */
             margin: 0 auto 3rem auto;
             display: flex; justify-content: center; align-items: center;
-            perspective: 1000px; /* 开启3D透视 */
+            perspective: 1200px;
             z-index: 10;
+            overflow: visible !important;
         }
 
-        /* 轨道平面 (倾斜 3D 感) */
+        /* 轨道平面 */
         .orbit-plane {
             position: absolute;
             width: 100%; height: 100%;
             transform-style: preserve-3d;
-            /* 让轨道稍微倾斜，制造立体感 */
-            transform: rotateX(70deg);
-            animation: orbit-float 10s ease-in-out infinite alternate;
+            transform: rotateX(65deg) rotateY(0deg); 
         }
 
         /* 3D 主星球 */
         .planet-body {
             position: absolute;
             top: 50%; left: 50%;
-            width: 160px; height: 160px;
+            width: 140px; height: 140px; /* 缩小星球，防止穿模 */
             transform: translate(-50%, -50%);
             border-radius: 50%;
-            /* 核心光影：利用内阴影模拟 3D 球体 */
             box-shadow: 
-                inset -30px -30px 60px rgba(0,0,0,0.9), /* 深邃暗部 */
-                inset 10px 10px 40px rgba(255,255,255,0.3), /* 顶部高光 */
-                0 0 60px rgba(0,0,0,0.5); /* 外部投影 */
+                inset -25px -25px 40px rgba(0,0,0,0.8),
+                inset 10px 10px 30px rgba(255,255,255,0.5),
+                0 0 40px rgba(0,0,0,0.5);
             z-index: 10;
-            overflow: hidden;
-            /* 玻璃质感微调 */
-            backdrop-filter: blur(5px);
         }
 
-        /* 副属性：行星表面纹理/大气层 */
+        /* 副属性：高亮大气层 (显著增强可见度) */
         .planet-atmosphere {
             position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            opacity: 0.7;
-            filter: blur(20px);
-            /* 混合模式让颜色融合更自然 */
-            mix-blend-mode: overlay; 
-            animation: atmosphere-spin 40s linear infinite;
+            top: -10%; left: -10%;
+            width: 120%; height: 120%;
+            border-radius: 50%;
+            opacity: 0.8;
+            filter: blur(15px);
+            animation: atmosphere-pulse 4s ease-in-out infinite alternate;
         }
 
         /* 游离态：卫星轨道线 */
         .satellite-track {
             position: absolute;
             top: 50%; left: 50%;
-            width: 280px; height: 280px;
+            width: 320px; height: 320px; /* 轨道直径显著大于星球 */
             transform: translate(-50%, -50%);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.15);
             border-radius: 50%;
-            box-shadow: inset 0 0 20px rgba(255,255,255,0.05);
+            box-shadow: 0 0 15px rgba(255,255,255,0.05);
         }
 
         /* 游离态：卫星本体 */
         .satellite-body {
             position: absolute;
             top: 0; left: 50%;
-            width: 16px; height: 16px;
-            margin-left: -8px; margin-top: -8px;
+            width: 18px; height: 18px;
+            margin-left: -9px; margin-top: -9px;
             border-radius: 50%;
-            box-shadow: 
-                0 0 15px currentColor, 
-                0 0 30px currentColor;
             background: currentColor;
+            box-shadow: 0 0 15px currentColor, 0 0 30px currentColor;
             
             /* 沿轨道运动 */
-            offset-path: path("M 140 0 A 140 140 0 1 1 139.9 0");
-            animation: satellite-orbit 8s linear infinite;
+            offset-path: path("M 160 0 A 160 160 0 1 1 159.9 0");
+            animation: satellite-orbit 10s linear infinite;
         }
 
-        /* 外部光晕 (Main Color) */
+        /* 外部光晕 */
         .planet-glow {
             position: absolute;
-            width: 200px; height: 200px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px; height: 180px;
             border-radius: 50%;
             filter: blur(50px);
-            opacity: 0.5;
+            opacity: 0.4;
             z-index: 1;
-            animation: glow-breathe 5s infinite alternate;
         }
 
         /* 动画定义 */
-        @keyframes glow-breathe { 0% { opacity: 0.4; transform: scale(0.9); } 100% { opacity: 0.6; transform: scale(1.1); } }
-        @keyframes atmosphere-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes atmosphere-pulse { 0% { opacity: 0.6; transform: scale(0.95); } 100% { opacity: 0.9; transform: scale(1.05); } }
+        
+        /* 核心修复：精确控制 Z-index 防止穿模 */
         @keyframes satellite-orbit { 
-            0% { offset-distance: 0%; transform: scale(0.7); z-index: 5; opacity: 0.6; } /* 远端 */
-            25% { z-index: 5; }
-            50% { offset-distance: 50%; transform: scale(1.3); z-index: 20; opacity: 1; } /* 近端：变大且层级最高 */
-            75% { z-index: 5; }
-            100% { offset-distance: 100%; transform: scale(0.7); z-index: 5; opacity: 0.6; }
+            0% { 
+                offset-distance: 0%; 
+                transform: scale(0.7); 
+                z-index: 1; /* 远端：星球后面 */
+                opacity: 0.5;
+            }
+            20% { z-index: 1; }
+            25% { z-index: 20; } /* 切换点 */
+            50% { 
+                offset-distance: 50%; 
+                transform: scale(1.4); 
+                z-index: 20; /* 近端：星球前面 */
+                opacity: 1;
+            }
+            75% { z-index: 20; }
+            80% { z-index: 1; } /* 切换点 */
+            100% { 
+                offset-distance: 100%; 
+                transform: scale(0.7); 
+                z-index: 1; 
+                opacity: 0.5;
+            }
         }
-        @keyframes orbit-float { 0% { transform: rotateX(70deg) translateY(0px); } 100% { transform: rotateX(70deg) translateY(-10px); } }
         
         /* =========================================
-           2. 报告卡片样式
+           报告卡片样式
            ========================================= */
         .report-card { 
             background: rgba(15, 23, 42, 0.4); 
@@ -133,7 +143,6 @@
         .section-title { font-size: 1.5rem; font-weight: bold; color: #f8fafc; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.05em; }
         .section-subtitle { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 2rem; display: block; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; }
         
-        /* 内容排版 */
         .report-content { font-size: 1rem; color: #cbd5e1; }
         .report-content p { margin-bottom: 1.2rem; line-height: 1.8; text-align: justify; }
         .report-content strong { color: #f1f5f9; font-weight: 700; }
@@ -178,23 +187,17 @@
                 <!-- Header Section -->
                 <header class="text-center mb-20 fade-in-up">
                     
-                    <!-- 3D Planet Engine (纯粹视觉，无文字干扰) -->
+                    <!-- 3D Planet Engine -->
                     <div class="planet-box">
                         <!-- 1. 背景光晕 (主属性色) -->
                         <div class="planet-glow" :style="{ backgroundColor: reportData.main.color }"></div>
 
-                        <!-- 2. 3D 星球本体 (主属性色基底) -->
+                        <!-- 2. 3D 星球本体 (主属性色) -->
                         <div class="planet-body" :style="{ backgroundColor: reportData.main.color }">
-                            <!-- 行星表面纹理 (副属性色混合，形成流动大气) -->
+                            <!-- 行星表面纹理 (副属性色：强烈的径向渐变，解决看不清问题) -->
                             <div class="planet-atmosphere" :style="{
-                                background: `conic-gradient(
-                                    from 0deg, 
-                                    transparent 0%, 
-                                    ${reportData.second.color} 40%, 
-                                    transparent 60%, 
-                                    ${reportData.second.color} 90%, 
-                                    transparent 100%
-                                )`
+                                background: `radial-gradient(circle at 70% 30%, ${reportData.second.color}, transparent 60%)`,
+                                boxShadow: `inset 0 0 20px ${reportData.second.color}`
                             }"></div>
                         </div>
 
@@ -202,7 +205,7 @@
                         <div class="orbit-plane">
                             <!-- 轨道线 -->
                             <div class="satellite-track"></div>
-                            <!-- 卫星本体 (使用 currentColor 继承颜色) -->
+                            <!-- 卫星本体 -->
                             <div class="satellite-body" :style="{ color: reportData.wandering.color }"></div>
                         </div>
                     </div>
@@ -268,7 +271,7 @@
                 const fetchError = ref('');
                 const reportData = ref(null);
 
-                // 图标修复逻辑 (保留以确保正文图标正常显示)
+                // 图标修复逻辑 (确保正文中的图标正常显示)
                 const fixIconClasses = () => {
                     nextTick(() => {
                         const icons = document.querySelectorAll('.report-content i');
@@ -321,22 +324,12 @@
                         isLoading.value = false;
                     }
                 });
-                
-                // 保留此计算属性以备不时之需，尽管3D星球主要使用内联样式
-                const conicGradientStyle = computed(() => {
-                    if (!reportData.value || !reportData.value.main) return {};
-                    const c1 = reportData.value.main?.color || '#333';
-                    
-                    return {
-                        background: `conic-gradient(from 0deg, ${c1} 0%, transparent 100%)`
-                    };
-                });
 
                 const saveAsImage = () => {
                     alert("Image export requires server-side rendering due to cross-origin policies. Please screenshot for now.");
                 };
 
-                return { isLoading, fetchError, reportData, conicGradientStyle, saveAsImage };
+                return { isLoading, fetchError, reportData, saveAsImage };
             }
         }).mount('#report-app');
     </script>
