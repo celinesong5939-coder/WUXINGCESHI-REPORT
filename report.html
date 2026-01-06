@@ -3,41 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全息档案库 - V60.0 Cloud Edition</title>
+    <title>全息档案库 - 深度解码报告</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
     <style>
         :root { --c-bg: #020617; }
-        body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
+        body { 
+            background-color: var(--c-bg); 
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); 
+            color: #cbd5e1; 
+            font-family: 'Noto Serif SC', serif; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+            margin: 0;
+        }
+
+        /* --- 核心修复：完全同步 IND.txt 的图腾样式 --- */
         .totem-container { position: relative; width: 340px; height: 340px; margin: 0 auto 2rem auto; overflow: visible !important; }
         .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+        
+        /* 辉光层 */
         .totem-glow-main { width: 220px; height: 220px; border-radius: 50%; filter: blur(25px); opacity: 0.7; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
         .totem-glow-sub { width: 300px; height: 300px; border-radius: 50%; filter: blur(40px); opacity: 0.3; z-index: 1; animation: breathe-soft 6s ease-in-out infinite; }
+        
+        /* 物理环层 */
         .totem-outer-ring { width: 240px; height: 240px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(0,0,0,0.5) inset; z-index: 5; }
         .totem-inner-ring { width: 220px; height: 220px; border-radius: 50%; mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); opacity: 1; z-index: 4; }
         .totem-ring-overlay { width: 220px; height: 220px; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 3px 3px 6px rgba(255,255,255,0.2), inset -3px -3px 6px rgba(0,0,0,0.6), 3px 3px 10px rgba(0,0,0,0.5); mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); }
+        
+        /* 轨道与行星 */
         .totem-orbit-wrapper { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; z-index: 100; pointer-events: none; }
         .totem-orbit-inner { width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); animation: orbit-spin 12s linear infinite; }
-        .totem-planet { position: absolute; top: 50%; right: -6px; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+        .totem-planet { position: absolute; top: 50%; right: -6px; width: 14px; height: 14px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+        
+        /* 图标与文字 */
         .totem-bg-icon { font-size: 10rem; opacity: 0.4; z-index: 3; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); pointer-events: none; }
-        .totem-char { font-size: 5.5rem; font-weight: 900; z-index: 11; text-shadow: 0 5px 30px rgba(0,0,0,1); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .totem-char { font-size: 5.5rem; font-weight: 900; z-index: 11; text-shadow: 0 5px 30px rgba(0,0,0,1); background-clip: text; -webkit-background-clip: text; color: transparent; position: relative; }
+
+        /* 动画关键帧 */
         @keyframes breathe-tight { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; } }
         @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.5; } }
         @keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
+
+        /* 报告卡片样式 */
+        .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; backdrop-filter: blur(10px); }
         .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.1); }
-        .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; }
+        .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; font-family: sans-serif; }
         .section-title { font-size: 1.5rem; font-weight: bold; color: #f1f5f9; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
         .section-subtitle { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; display: block; }
+        
+        /* 内容排版修正 */
         .report-content p { margin-bottom: 1rem; line-height: 1.8; text-align: justify; }
         .report-content strong { color: #e2e8f0; font-weight: bold; }
-        .highlight { color: #d97706; }
+        .report-content ul { list-style-type: none; padding-left: 0; }
+        
         .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        
         .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
         .save-btn:active { transform: scale(0.9); }
     </style>
@@ -46,72 +71,91 @@
     <div id="report-app">
 
         <!-- 状态一：正在加载 -->
-        <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
-            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 正在从云端解密档案...
+        <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500 tracking-widest text-xs uppercase">
+            <i class="fa-solid fa-circle-notch fa-spin mr-3 text-amber-600"></i> Decrypting Soul Source Code...
         </div>
 
         <!-- 状态二：发生错误 -->
         <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-4">
             <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-6"></i>
-            <h2 class="text-2xl font-bold mb-2 text-white">报告加载失败</h2>
-            <p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
+            <h2 class="text-2xl font-bold mb-2 text-white">连接中断</h2>
+            <p class="text-slate-400 max-w-sm mb-6">{{ fetchError }}</p>
+            <a href="index.html" class="px-6 py-2 border border-slate-600 rounded text-slate-300 hover:bg-slate-800 transition">返回首页</a>
         </div>
 
         <!-- 状态三：成功加载 -->
         <template v-else-if="reportData">
-            <!-- 悬浮保存按钮 -->
-            <div class="save-btn" @click="saveAsImage" title="保存为图片"><i class="fa-solid fa-camera"></i></div>
+            <div class="save-btn" @click="screenshot" title="保存报告"><i class="fa-solid fa-camera"></i></div>
             
             <div class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
-                <!-- 头部 -->
+                <!-- 头部图腾展示区 -->
                 <header class="text-center mb-16 fade-in-up">
                     
-                    <!-- 全景动态图腾 -->
+                    <!-- 动态图腾组件 (完全复刻 Index 页) -->
                     <div class="totem-container">
+                        <!-- 副属性光晕 (Sub Glow) -->
                         <div class="totem-glow-sub abs-center" :style="{ backgroundColor: reportData.second.color }"></div>
+                        
+                        <!-- 主属性光晕 (Main Glow) -->
                         <div class="totem-glow-main abs-center" :style="{ backgroundColor: reportData.main.color }"></div>
+                        
+                        <!-- 外环 (Outer Ring) -->
                         <div class="totem-outer-ring abs-center" :style="{ borderColor: reportData.main.color }"></div>
+                        
+                        <!-- 能量占比环 (Conic Gradient Ring) -->
                         <div class="totem-inner-ring abs-center" :style="conicGradientStyle"></div>
+                        
+                        <!-- 环形遮罩/质感 (Overlay) -->
                         <div class="totem-ring-overlay abs-center"></div>
+                        
+                        <!-- 游离态行星轨道 (Orbit) -->
                         <div class="totem-orbit-wrapper abs-center">
                             <div class="totem-orbit-inner">
-                                <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color }"></div>
+                                <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color, boxShadow: `0 0 10px ${reportData.wandering.color}` }"></div>
                             </div>
                         </div>
+                        
+                        <!-- 背景大图标 -->
                         <i :class="['totem-bg-icon', 'abs-center', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
+                        
+                        <!-- 核心字符 -->
                         <div class="totem-char abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${reportData.main.color} 100%)` }">
                             {{ reportData.main.char }}
                         </div>
                     </div>
                     
-                    <div class="space-y-2">
-                        <p class="text-amber-600 text-xs tracking-[0.5em] uppercase">Project Archetype V60 Cloud</p>
-                        <h1 class="text-4xl font-black text-white tracking-widest">{{ reportData.comboName }}</h1>
+                    <!-- 标题信息 -->
+                    <div class="space-y-3 mt-8">
+                        <p class="text-amber-600/80 text-[10px] tracking-[0.6em] uppercase font-bold">Project Archetype V60 Cloud</p>
+                        <h1 class="text-3xl md:text-4xl font-black text-white tracking-widest">{{ reportData.comboName }}</h1>
+                        <p class="text-slate-500 text-xs tracking-widest uppercase">{{ reportData.disguiseTitle }}</p>
                     </div>
                 </header>
 
-                <!-- 深度解释 -->
-                <div class="mb-12 text-center px-8 py-6 bg-slate-900/50 rounded border border-amber-900/30 fade-in-up" style="animation-delay: 0.2s">
-                    <p class="text-amber-500/80 text-xs font-bold uppercase tracking-widest mb-3">Archetype Disguise</p>
-                    <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText"></div>
+                <!-- 灵魂导语 / 诊断书 -->
+                <div class="mb-12 text-center px-6 py-8 bg-slate-900/50 rounded border-l-4 border-amber-600/50 shadow-lg fade-in-up" style="animation-delay: 0.2s">
+                    <p class="text-amber-500/80 text-[10px] font-bold uppercase tracking-widest mb-4 flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-quote-left"></i> Archetype Diagnosis <i class="fa-solid fa-quote-right"></i>
+                    </p>
+                    <div class="text-slate-300 text-sm md:text-base leading-relaxed font-light" v-html="reportData.disguiseExplain"></div>
                 </div>
 
-                <!-- ★★★ 核心修改：这里之前被注释掉了，现在我把注释删除了，文字就能显示了 ★★★ -->
-                <div class="space-y-8" v-if="reportData.sections && reportData.sections.length > 0">
+                <!-- 章节内容循环 -->
+                <div class="space-y-10" v-if="reportData.sections && reportData.sections.length > 0">
                     <section v-for="(section, index) in reportData.sections" :key="index" class="report-card fade-in-up" :style="{ animationDelay: ((index + 3) * 0.1) + 's' }">
                         <div class="section-num">{{ '0' + (index + 1) }}</div>
-                        <div class="section-title">{{ section.title }}</div>
+                        <div class="section-title">
+                            <i class="fa-solid fa-diamond text-xs text-amber-600 mr-2"></i>
+                            {{ section.title }}
+                        </div>
                         <span class="section-subtitle">{{ section.subtitle }}</span>
-                        <!-- 显示纯文本内容 -->
-                        <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
+                        
+                        <!-- 渲染 HTML 内容 -->
+                        <div class="report-content" v-html="section.content"></div>
                     </section>
                 </div>
-                <!-- 如果没有章节数据，显示一个提示 -->
-                <div v-else class="text-center text-slate-500 mt-10">
-                    <p>正在生成深度分析，请稍候...</p>
-                </div>
                 
-                <footer class="text-center text-slate-600 text-xs mt-16 pb-8 border-t border-slate-900 pt-8">
+                <footer class="text-center text-slate-600 text-[10px] mt-20 pb-8 border-t border-slate-900/50 pt-8 uppercase tracking-widest">
                     <p>&copy; 2025 Source Code Archetype. All Rights Reserved.</p>
                 </footer>
             </div>
@@ -122,8 +166,6 @@
         const { createApp, ref, onMounted, computed } = Vue;
 
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
-        
-        // 已填入你的 Key
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
         createApp({
@@ -131,6 +173,22 @@
                 const isLoading = ref(true);
                 const fetchError = ref('');
                 const reportData = ref(null);
+
+                // ★★★ 核心修复函数：数据标准化 ★★★
+                // 后端返回的数据结构嵌套很深且属性名(color_hex)与前端(color)不一致
+                // 这个函数将后端数据清洗为前端可直接使用的简单对象
+                const normalizeAttribute = (attr) => {
+                    if (!attr) return { color: '#333', char: '?', icon: '' };
+                    // 优先取 totem 对象里的数据，如果没有则取外层
+                    const source = attr.totem || attr;
+                    return {
+                        ...attr, // 保留原始数据
+                        color: source.color_hex || source.color || '#333', // 统一为 .color
+                        char: source.char || '?',
+                        icon: source.icon || 'fa-solid fa-circle',
+                        name: source.name || source.label || ''
+                    };
+                };
 
                 onMounted(async () => {
                     const urlParams = new URLSearchParams(window.location.search);
@@ -150,18 +208,21 @@
                             throw new Error(rawData.message || `请求失败: ${response.status}`);
                         }
 
-                        console.log("云端原始数据:", rawData);
-
-                        // ★★★★★ 超级兼容模式 ★★★★★
-                        const coreData = rawData.attributes || rawData.meta || rawData;
-                        const sectionsData = rawData.sections || coreData.sections || [];
-
+                        // 数据解构与清洗
+                        // 后端的数据主要在 meta 对象里
+                        const meta = rawData.meta || {};
+                        
                         reportData.value = {
-                            ...rawData,
-                            ...coreData,
-                            attributes: coreData,
-                            meta: coreData,
-                            sections: sectionsData
+                            comboName: meta.comboName || '未知组合',
+                            disguiseTitle: meta.disguiseTitle || '',
+                            disguiseExplain: meta.disguiseExplain || '',
+                            // 使用清洗函数处理五个属性
+                            main: normalizeAttribute(meta.main),
+                            second: normalizeAttribute(meta.second),
+                            wandering: normalizeAttribute(meta.wandering),
+                            missing: normalizeAttribute(meta.missing),
+                            equilibrium: normalizeAttribute(meta.equilibrium),
+                            sections: rawData.sections || []
                         };
 
                     } catch (error) {
@@ -172,24 +233,29 @@
                     }
                 });
                 
+                // 计算圆环渐变样式
                 const conicGradientStyle = computed(() => {
-                    if (!reportData.value || !reportData.value.main) return {};
-                    const mainPercent = 60; 
-                    const subPercent = 30;
-                    const c1 = reportData.value.main?.color || '#333';
-                    const c2 = reportData.value.second?.color || '#333';
-                    const c3 = reportData.value.wandering?.color || '#333';
+                    if (!reportData.value) return {};
+                    
+                    // 由于后端不传具体分数，我们设定一个美观的固定比例：
+                    // 主属性 60%，副属性 30%，游离态 10%
+                    const p1 = 60; 
+                    const p2 = 30;
+                    
+                    const c1 = reportData.value.main.color;
+                    const c2 = reportData.value.second.color;
+                    const c3 = reportData.value.wandering.color;
                     
                     return {
-                        background: `conic-gradient(${c1} 0% ${mainPercent}%, ${c2} ${mainPercent}% ${mainPercent + subPercent}%, ${c3} ${mainPercent + subPercent}% 100%)`
+                        background: `conic-gradient(${c1} 0% ${p1}%, ${c2} ${p1}% ${p1 + p2}%, ${c3} ${p1 + p2}% 100%)`
                     };
                 });
 
-                const saveAsImage = () => {
-                    alert("截图功能需部署在服务器环境使用 (html2canvas跨域限制)。\n当前环境请直接使用浏览器截图。");
+                const screenshot = () => {
+                    alert("请使用手机截屏或浏览器打印功能保存您的灵魂档案。");
                 };
 
-                return { isLoading, fetchError, reportData, conicGradientStyle, saveAsImage };
+                return { isLoading, fetchError, reportData, conicGradientStyle, screenshot };
             }
         }).mount('#report-app');
     </script>
