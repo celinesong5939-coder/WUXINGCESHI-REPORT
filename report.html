@@ -13,21 +13,71 @@
     <style>
         :root { --c-bg: #020617; }
         body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
-        .totem-container { position: relative; width: 340px; height: 340px; margin: 0 auto 2rem auto; overflow: visible !important; }
-        .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-        .totem-glow-main { width: 220px; height: 220px; border-radius: 50%; filter: blur(25px); opacity: 0.7; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
-        .totem-glow-sub { width: 300px; height: 300px; border-radius: 50%; filter: blur(40px); opacity: 0.3; z-index: 1; animation: breathe-soft 6s ease-in-out infinite; }
-        .totem-outer-ring { width: 240px; height: 240px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(0,0,0,0.5) inset; z-index: 5; }
-        .totem-inner-ring { width: 220px; height: 220px; border-radius: 50%; mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); opacity: 1; z-index: 4; }
-        .totem-ring-overlay { width: 220px; height: 220px; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 3px 3px 6px rgba(255,255,255,0.2), inset -3px -3px 6px rgba(0,0,0,0.6), 3px 3px 10px rgba(0,0,0,0.5); mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); }
-        .totem-orbit-wrapper { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; z-index: 100; pointer-events: none; }
+        
+        /* --- 核心修复：图腾样式 --- */
+        .totem-container { 
+            position: relative; 
+            width: 300px; /* 修正尺寸 */
+            height: 300px; 
+            margin: 0 auto 2rem auto; 
+            overflow: visible !important; 
+            z-index: 10;
+        }
+        
+        .abs-center { 
+            position: absolute; 
+            left: 50%; 
+            top: 50%; 
+            transform: translate(-50%, -50%); 
+        }
+
+        /* 光晕与圆环 */
+        .totem-glow-main { width: 180px; height: 180px; border-radius: 50%; filter: blur(25px); opacity: 0.7; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
+        .totem-glow-sub { width: 260px; height: 260px; border-radius: 50%; filter: blur(40px); opacity: 0.3; z-index: 1; animation: breathe-soft 6s ease-in-out infinite; }
+        .totem-outer-ring { width: 220px; height: 220px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(0,0,0,0.5) inset; z-index: 5; }
+        .totem-inner-ring { width: 200px; height: 200px; border-radius: 50%; mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); opacity: 1; z-index: 4; }
+        .totem-ring-overlay { width: 200px; height: 200px; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 3px 3px 6px rgba(255,255,255,0.2), inset -3px -3px 6px rgba(0,0,0,0.6), 3px 3px 10px rgba(0,0,0,0.5); }
+        
+        /* 轨道系统 */
+        .totem-orbit-wrapper { 
+            position: absolute; left: 50%; top: 50%; 
+            transform: translate(-50%, -50%); 
+            width: 100%; height: 100%; 
+            z-index: 100; pointer-events: none; 
+        }
         .totem-orbit-inner { width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); animation: orbit-spin 12s linear infinite; }
-        .totem-planet { position: absolute; top: 50%; right: -6px; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
-        .totem-bg-icon { font-size: 10rem; opacity: 0.4; z-index: 3; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); pointer-events: none; }
-        .totem-char { font-size: 5.5rem; font-weight: 900; z-index: 11; text-shadow: 0 5px 30px rgba(0,0,0,1); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        
+        .totem-planet { 
+            position: absolute; top: 50%; right: -6px; 
+            width: 12px; height: 12px; border-radius: 50%; 
+            background: currentColor; 
+            box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; 
+        }
+        
+        /* 图标修复 */
+        .totem-bg-icon { 
+            font-size: 8rem; 
+            opacity: 0.15; 
+            z-index: 3; 
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%; height: 100%;
+        }
+        
+        .totem-char { 
+            font-size: 4rem; font-weight: 900; 
+            background-clip: text; -webkit-background-clip: text; color: transparent; 
+            text-shadow: 0 5px 20px rgba(0,0,0,0.8); 
+            position: relative; z-index: 11; 
+        }
+
         @keyframes breathe-tight { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; } }
         @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.5; } }
         @keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        /* 报告卡片样式 */
         .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
         .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.1); }
         .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; }
@@ -70,15 +120,20 @@
                     <div class="totem-container">
                         <div class="totem-glow-sub abs-center" :style="{ backgroundColor: reportData.second.color }"></div>
                         <div class="totem-glow-main abs-center" :style="{ backgroundColor: reportData.main.color }"></div>
+                        
                         <div class="totem-outer-ring abs-center" :style="{ borderColor: reportData.main.color }"></div>
                         <div class="totem-inner-ring abs-center" :style="conicGradientStyle"></div>
                         <div class="totem-ring-overlay abs-center"></div>
+                        
                         <div class="totem-orbit-wrapper abs-center">
                             <div class="totem-orbit-inner">
                                 <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color }"></div>
                             </div>
                         </div>
-                        <i :class="['totem-bg-icon', 'abs-center', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
+                        
+                        <!-- ★★★ 核心修复：添加 'fa-solid' 类，解决方块问题 ★★★ -->
+                        <i :class="['totem-bg-icon', 'abs-center', 'fa-solid', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
+                        
                         <div class="totem-char abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${reportData.main.color} 100%)` }">
                             {{ reportData.main.char }}
                         </div>
@@ -96,7 +151,6 @@
                     <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText"></div>
                 </div>
 
-                <!-- ★★★ 核心修改：这里之前被注释掉了，现在我把注释删除了，文字就能显示了 ★★★ -->
                 <div class="space-y-8" v-if="reportData.sections && reportData.sections.length > 0">
                     <section v-for="(section, index) in reportData.sections" :key="index" class="report-card fade-in-up" :style="{ animationDelay: ((index + 3) * 0.1) + 's' }">
                         <div class="section-num">{{ '0' + (index + 1) }}</div>
@@ -176,6 +230,7 @@
                     if (!reportData.value || !reportData.value.main) return {};
                     const mainPercent = 60; 
                     const subPercent = 30;
+                    // 容错处理，防止 main.color 为空时报错
                     const c1 = reportData.value.main?.color || '#333';
                     const c2 = reportData.value.second?.color || '#333';
                     const c3 = reportData.value.wandering?.color || '#333';
