@@ -13,8 +13,6 @@
     <style>
         :root { --c-bg: #020617; }
         body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
-        
-        /* 图腾核心样式 */
         .totem-container { position: relative; width: 340px; height: 340px; margin: 0 auto 2rem auto; overflow: visible !important; }
         .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
         .totem-glow-main { width: 220px; height: 220px; border-radius: 50%; filter: blur(25px); opacity: 0.7; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
@@ -25,21 +23,7 @@
         .totem-orbit-wrapper { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; z-index: 100; pointer-events: none; }
         .totem-orbit-inner { width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); animation: orbit-spin 12s linear infinite; }
         .totem-planet { position: absolute; top: 50%; right: -6px; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
-        
-        /* ★★★ 关键修复：确保图标垂直居中且显示 ★★★ */
-        .totem-bg-icon { 
-            font-size: 10rem; 
-            opacity: 0.4; 
-            z-index: 3; 
-            filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); 
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-        }
-        
+        .totem-bg-icon { font-size: 10rem; opacity: 0.4; z-index: 3; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); pointer-events: none; }
         .totem-char { font-size: 5.5rem; font-weight: 900; z-index: 11; text-shadow: 0 5px 30px rgba(0,0,0,1); background-clip: text; -webkit-background-clip: text; color: transparent; }
         @keyframes breathe-tight { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; } }
         @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.5; } }
@@ -56,14 +40,6 @@
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
         .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
         .save-btn:active { transform: scale(0.9); }
-
-        /* ★★★ 杀手锏：强制隐藏后端发过来的所有图腾代码，防止冲突 ★★★ */
-        .report-content .totem-container, 
-        .report-content .totem-container-fix,
-        .report-content .totem-stack-container,
-        .report-content .totem-container-pro {
-            display: none !important;
-        }
     </style>
 </head>
 <body>
@@ -102,8 +78,7 @@
                                 <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color }"></div>
                             </div>
                         </div>
-                        <!-- ★★★ 修复点：添加 fa-solid 确保图标显示 ★★★ -->
-                        <i :class="['totem-bg-icon', 'abs-center', 'fa-solid', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
+                        <i :class="['totem-bg-icon', 'abs-center', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
                         <div class="totem-char abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${reportData.main.color} 100%)` }">
                             {{ reportData.main.char }}
                         </div>
@@ -121,113 +96,17 @@
                     <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText"></div>
                 </div>
 
+                <!-- ★★★ 核心修改：这里之前被注释掉了，现在我把注释删除了，文字就能显示了 ★★★ -->
                 <div class="space-y-8" v-if="reportData.sections && reportData.sections.length > 0">
                     <section v-for="(section, index) in reportData.sections" :key="index" class="report-card fade-in-up" :style="{ animationDelay: ((index + 3) * 0.1) + 's' }">
                         <div class="section-num">{{ '0' + (index + 1) }}</div>
                         <div class="section-title">{{ section.title }}</div>
                         <span class="section-subtitle">{{ section.subtitle }}</span>
-                        
-                        <!-- ★★★ 核心大招：如果是第 7 章 (Index 6)，前端强行渲染完美图腾 ★★★ -->
-                        <!-- 这样就不用管后端发过来的是什么了，直接无视 -->
-                        <div v-if="index === 6" class="mb-12 mt-8 text-center">
-                            <div class="totem-container scale-90">
-                                <div class="totem-glow-sub abs-center" :style="{ backgroundColor: reportData.second.color }"></div>
-                                <div class="totem-glow-main abs-center" :style="{ backgroundColor: reportData.main.color }"></div>
-                                <div class="totem-outer-ring abs-center" :style="{ borderColor: reportData.main.color }"></div>
-                                <div class="totem-inner-ring abs-center" :style="conicGradientStyle"></div>
-                                <div class="totem-ring-overlay abs-center"></div>
-                                <div class="totem-orbit-wrapper abs-center">
-                                    <div class="totem-orbit-inner">
-                                        <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color }"></div>
-                                    </div>
-                                </div>
-                                <!-- ★★★ 修复点：这里也加上 fa-solid，填补黑洞 ★★★ -->
-                                <i :class="['totem-bg-icon', 'abs-center', 'fa-solid', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
-                                <div class="totem-char abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${reportData.main.color} 100%)` }">
-                                    {{ reportData.main.char }}
-                                </div>
-                            </div>
-
-                            <!-- ★★★ 修复：完美还原 5 列详细数据条 (带光点、标题、描述) ★★★ -->
-                            <div class="mt-10 grid grid-cols-2 md:grid-cols-5 gap-3 text-center max-w-2xl mx-auto px-2">
-                                <!-- 1. 核心 -->
-                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
-                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" :style="{ backgroundColor: reportData.main.color, color: reportData.main.color }"></div>
-                                    <div class="text-sm font-bold text-slate-200 mb-1">
-                                        核心【{{ reportData.main.char }}】
-                                    </div>
-                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
-                                        你的灵魂底色
-                                    </div>
-                                </div>
-
-                                <!-- 2. 皮相 -->
-                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
-                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" :style="{ backgroundColor: reportData.second.color, color: reportData.second.color }"></div>
-                                    <div class="text-sm font-bold text-slate-200 mb-1">
-                                        皮相【{{ reportData.second.char }}】
-                                    </div>
-                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
-                                        社交面具
-                                    </div>
-                                </div>
-
-                                <!-- 3. 游离 -->
-                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
-                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" :style="{ backgroundColor: reportData.wandering.color, color: reportData.wandering.color }"></div>
-                                    <div class="text-sm font-bold text-slate-200 mb-1">
-                                        游离【{{ reportData.wandering.char }}】
-                                    </div>
-                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
-                                        潜意识变量
-                                    </div>
-                                </div>
-
-                                <!-- 4. 缺失 -->
-                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
-                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" :style="{ backgroundColor: reportData.missing.color, color: reportData.missing.color }"></div>
-                                    <div class="text-sm font-bold text-slate-200 mb-1">
-                                        缺失【{{ reportData.missing.char }}】
-                                    </div>
-                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
-                                        能量短板
-                                    </div>
-                                </div>
-
-                                <!-- 5. 平衡/进化 -->
-                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
-                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" 
-                                         :style="{ backgroundColor: reportData.equilibrium ? reportData.equilibrium.color : '#94a3b8', color: reportData.equilibrium ? reportData.equilibrium.color : '#94a3b8' }">
-                                    </div>
-                                    <div class="text-sm font-bold text-slate-200 mb-1">
-                                        平衡【{{ reportData.equilibrium ? reportData.equilibrium.char : '?' }}】
-                                    </div>
-                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
-                                        你的进化方向
-                                    </div>
-                                </div>
-                            </div>
-                        <!-- ★★★ 核心大招结束 ★★★ -->
-
-                        <!-- 显示纯文本内容 (CSS已强制隐藏这里的图腾) -->
+                        <!-- 显示纯文本内容 -->
                         <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
-                        
-                        <!-- SOP 数据显示 -->
-                        <div v-else class="grid grid-cols-1 gap-4">
-                            <div v-for="(item, i) in section.sopData" :key="i" class="bg-slate-800/50 p-4 rounded border border-slate-700 flex items-start">
-                                <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center mr-4 shrink-0">
-                                    <i :class="[item.icon, 'text-amber-500']"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-slate-200 mb-1">{{ item.title }}</h4>
-                                    <p class="text-sm text-slate-400 mb-2">{{ item.action }}</p>
-                                    <div class="text-xs text-amber-600/80 uppercase tracking-wider font-bold">Why: {{ item.reason }}</div>
-                                </div>
-                            </div>
-                        </div>
                     </section>
                 </div>
-                
+                <!-- 如果没有章节数据，显示一个提示 -->
                 <div v-else class="text-center text-slate-500 mt-10">
                     <p>正在生成深度分析，请稍候...</p>
                 </div>
@@ -244,6 +123,7 @@
 
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
         
+        // 已填入你的 Key
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
         createApp({
@@ -272,6 +152,7 @@
 
                         console.log("云端原始数据:", rawData);
 
+                        // ★★★★★ 超级兼容模式 ★★★★★
                         const coreData = rawData.attributes || rawData.meta || rawData;
                         const sectionsData = rawData.sections || coreData.sections || [];
 
