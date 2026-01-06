@@ -13,249 +13,117 @@
     <style>
         :root { --c-bg: #020617; }
         body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
-        
-        /* =========================================
-           3D 行星引擎 V4.0 (最终完美版样式)
-           ========================================= */
-        .planet-box {
-            position: relative;
-            width: 340px; height: 340px;
-            margin: 0 auto 3rem auto;
-            display: flex; justify-content: center; align-items: center;
-            perspective: 1000px;
-            z-index: 10;
-            overflow: visible !important;
-        }
-
-        /* 1. 绝对居中的背光 (光晕) */
-        .planet-backlight {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 140px; height: 140px; /* 与星球同大 */
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            filter: blur(60px); /* 强力模糊形成光晕 */
-            opacity: 0.8;
-            z-index: 1; /* 最底层 */
-            animation: backlight-pulse 4s ease-in-out infinite alternate;
-        }
-
-        /* 2. 3D 主星球 */
-        .planet-body {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 140px; height: 140px;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            /* 模拟球体光照：左上亮，右下暗 */
-            box-shadow: 
-                inset 10px 10px 40px rgba(255,255,255,0.4), /* 高光 */
-                inset -30px -30px 60px rgba(0,0,0,0.9);   /* 阴影 */
-            z-index: 10; /* 中间层 */
-            overflow: hidden;
-        }
-
-        /* 行星表面大气 (副属性) */
-        .planet-atmosphere {
-            position: absolute;
-            top: -20%; left: -20%;
-            width: 140%; height: 140%;
-            opacity: 0.9;
-            filter: blur(10px);
-            animation: atmosphere-spin 30s linear infinite;
-        }
-
-        /* 3. 轨道层 (包含轨迹线和卫星) */
-        .orbit-system {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 300px; height: 300px;
-            transform: translate(-50%, -50%) rotateX(70deg); /* 3D 压扁 */
-            transform-style: preserve-3d;
-            z-index: 10;
-        }
-
-        /* 轨迹线 */
-        .orbit-track {
-            position: absolute;
-            width: 100%; height: 100%;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 50%;
-            box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
-        }
-
-        /* 卫星旋转容器 */
-        .satellite-spinner {
-            position: absolute;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            /* 核心动画：Z轴旋转 */
-            animation: satellite-rotate-z 10s linear infinite;
-            transform-style: preserve-3d;
-        }
-
-        /* 卫星本体 */
-        .satellite-body {
-            position: absolute;
-            top: 50%; right: -8px; /* 固定在轨道边缘 */
-            width: 16px; height: 16px;
-            margin-top: -8px;
-            border-radius: 50%;
-            background: currentColor;
-            box-shadow: 0 0 15px currentColor, 0 0 30px currentColor;
-            /* 反向旋转以保持卫星姿态 */
-            transform: rotateX(-70deg); 
-        }
-
-        /* 动画定义 */
-        @keyframes backlight-pulse { 0% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } }
-        @keyframes atmosphere-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
-        /* 核心：卫星旋转与层级切换 (解决穿模问题) */
-        /* 0度=右, 90度=前(下), 180度=左, 270度=后(上) */
-        @keyframes satellite-rotate-z {
-            0% { transform: rotate(0deg); z-index: 15; }
-            25% { transform: rotate(90deg); z-index: 20; } /* 最前：覆盖星球 */
-            50% { transform: rotate(180deg); z-index: 15; }
-            75% { transform: rotate(270deg); z-index: 1; } /* 最后：被星球遮挡 */
-            100% { transform: rotate(360deg); z-index: 15; }
-        }
-        
-        /* =========================================
-           报告卡片样式
-           ========================================= */
-        .report-card { 
-            background: rgba(15, 23, 42, 0.4); 
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.08); 
-            padding: 2.5rem; margin-bottom: 2.5rem; 
-            border-radius: 8px; position: relative; overflow: hidden; 
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-        }
-        .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent); }
-        .section-num { position: absolute; top: -10px; right: 10px; font-size: 6rem; font-weight: 900; opacity: 0.03; font-family: sans-serif; pointer-events: none; }
-        .section-title { font-size: 1.5rem; font-weight: bold; color: #f8fafc; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.05em; }
-        .section-subtitle { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 2rem; display: block; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; }
-        
-        .report-content { font-size: 1rem; color: #cbd5e1; }
-        .report-content p { margin-bottom: 1.2rem; line-height: 1.8; text-align: justify; }
-        .report-content strong { color: #f1f5f9; font-weight: 700; }
-        .report-content ul { margin-bottom: 1.2rem; padding-left: 1rem; }
-        .report-content li { margin-bottom: 0.5rem; position: relative; padding-left: 1rem; }
-        .report-content li::before { content: '•'; position: absolute; left: 0; color: #64748b; }
-        
-        .fade-in-up { animation: fadeInUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; opacity: 0; transform: translateY(30px); }
+        .totem-container { position: relative; width: 340px; height: 340px; margin: 0 auto 2rem auto; overflow: visible !important; }
+        .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+        .totem-glow-main { width: 220px; height: 220px; border-radius: 50%; filter: blur(25px); opacity: 0.7; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
+        .totem-glow-sub { width: 300px; height: 300px; border-radius: 50%; filter: blur(40px); opacity: 0.3; z-index: 1; animation: breathe-soft 6s ease-in-out infinite; }
+        .totem-outer-ring { width: 240px; height: 240px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(0,0,0,0.5) inset; z-index: 5; }
+        .totem-inner-ring { width: 220px; height: 220px; border-radius: 50%; mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); opacity: 1; z-index: 4; }
+        .totem-ring-overlay { width: 220px; height: 220px; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 3px 3px 6px rgba(255,255,255,0.2), inset -3px -3px 6px rgba(0,0,0,0.6), 3px 3px 10px rgba(0,0,0,0.5); mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); }
+        .totem-orbit-wrapper { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; z-index: 100; pointer-events: none; }
+        .totem-orbit-inner { width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); animation: orbit-spin 12s linear infinite; }
+        .totem-planet { position: absolute; top: 50%; right: -6px; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+        .totem-bg-icon { font-size: 10rem; opacity: 0.4; z-index: 3; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); pointer-events: none; }
+        .totem-char { font-size: 5.5rem; font-weight: 900; z-index: 11; text-shadow: 0 5px 30px rgba(0,0,0,1); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        @keyframes breathe-tight { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; } }
+        @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.5; } }
+        @keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
+        .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.1); }
+        .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; }
+        .section-title { font-size: 1.5rem; font-weight: bold; color: #f1f5f9; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-subtitle { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; display: block; }
+        .report-content p { margin-bottom: 1rem; line-height: 1.8; text-align: justify; }
+        .report-content strong { color: #e2e8f0; font-weight: bold; }
+        .highlight { color: #d97706; }
+        .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-        
-        .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 56px; height: 56px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 20px rgba(217, 119, 6, 0.4); z-index: 100; transition: all 0.3s; font-size: 1.2rem; }
-        .save-btn:hover { transform: scale(1.1); background: #b45309; }
-        .save-btn:active { transform: scale(0.95); }
+        .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
+        .save-btn:active { transform: scale(0.9); }
     </style>
 </head>
 <body>
     <div id="report-app">
 
-        <!-- Loading State -->
-        <div v-if="isLoading" class="fixed inset-0 flex flex-col items-center justify-center bg-[#020617] z-50 text-slate-500">
-            <div class="relative w-16 h-16 mb-4">
-                <div class="absolute inset-0 border-t-2 border-amber-600 rounded-full animate-spin"></div>
-                <div class="absolute inset-2 border-b-2 border-slate-700 rounded-full animate-spin" style="animation-direction: reverse;"></div>
-            </div>
-            <p class="text-xs tracking-[0.2em] uppercase animate-pulse">Decrypting Soul Archive...</p>
+        <!-- 状态一：正在加载 -->
+        <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
+            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 正在从云端解密档案...
         </div>
 
-        <!-- Error State -->
-        <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-6">
-            <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500/80 mb-6"></i>
-            <h2 class="text-2xl font-bold mb-3 text-white">Access Denied</h2>
-            <p class="text-slate-400 max-w-sm text-sm leading-relaxed">{{ fetchError }}</p>
-            <button @click="window.location.reload()" class="mt-8 px-6 py-2 border border-slate-700 rounded text-xs text-slate-400 hover:bg-slate-800 transition">RETRY CONNECTION</button>
+        <!-- 状态二：发生错误 -->
+        <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-4">
+            <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-6"></i>
+            <h2 class="text-2xl font-bold mb-2 text-white">报告加载失败</h2>
+            <p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
         </div>
 
-        <!-- Success State -->
+        <!-- 状态三：成功加载 -->
         <template v-else-if="reportData">
-            <!-- Save Button -->
-            <div class="save-btn" @click="saveAsImage" title="保存档案"><i class="fa-solid fa-download"></i></div>
+            <!-- 悬浮保存按钮 -->
+            <div class="save-btn" @click="saveAsImage" title="保存为图片"><i class="fa-solid fa-camera"></i></div>
             
-            <div class="container mx-auto px-4 pb-24 max-w-3xl pt-16">
-                <!-- Header Section -->
-                <header class="text-center mb-20 fade-in-up">
+            <div class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
+                <!-- 头部 -->
+                <header class="text-center mb-16 fade-in-up">
                     
-                    <!-- 3D Planet Engine (V4.0) -->
-                    <div class="planet-box">
-                        <!-- 1. 绝对居中的背光 (光晕) -->
-                        <div class="planet-backlight" :style="{ background: reportData.main.color, boxShadow: `0 0 50px ${reportData.main.color}` }"></div>
-
-                        <!-- 2. 3D 星球本体 -->
-                        <div class="planet-body" :style="{ backgroundColor: reportData.main.color }">
-                            <!-- 行星表面大气 (副属性色：强力渲染) -->
-                            <div class="planet-atmosphere" :style="{
-                                background: `radial-gradient(circle at 30% 30%, transparent 20%, ${reportData.second.color} 80%)`,
-                                boxShadow: `inset 0 0 30px ${reportData.second.color}`
-                            }"></div>
-                        </div>
-
-                        <!-- 3. 轨道系统 -->
-                        <div class="orbit-system">
-                            <div class="orbit-track"></div>
-                            <div class="satellite-spinner">
-                                <div class="satellite-body" :style="{ color: reportData.wandering.color }"></div>
+                    <!-- 全景动态图腾 -->
+                    <div class="totem-container">
+                        <div class="totem-glow-sub abs-center" :style="{ backgroundColor: reportData.second.color }"></div>
+                        <div class="totem-glow-main abs-center" :style="{ backgroundColor: reportData.main.color }"></div>
+                        <div class="totem-outer-ring abs-center" :style="{ borderColor: reportData.main.color }"></div>
+                        <div class="totem-inner-ring abs-center" :style="conicGradientStyle"></div>
+                        <div class="totem-ring-overlay abs-center"></div>
+                        <div class="totem-orbit-wrapper abs-center">
+                            <div class="totem-orbit-inner">
+                                <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color }"></div>
                             </div>
+                        </div>
+                        <i :class="['totem-bg-icon', 'abs-center', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
+                        <div class="totem-char abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${reportData.main.color} 100%)` }">
+                            {{ reportData.main.char }}
                         </div>
                     </div>
                     
-                    <div class="space-y-3 relative z-20">
-                        <div class="inline-block px-3 py-1 border border-amber-900/50 rounded-full bg-amber-900/10 backdrop-blur-sm mb-4">
-                            <p class="text-amber-500 text-[10px] tracking-[0.3em] uppercase font-bold">Project Archetype V60 Cloud</p>
-                        </div>
-                        <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 tracking-widest">{{ reportData.comboName }}</h1>
+                    <div class="space-y-2">
+                        <p class="text-amber-600 text-xs tracking-[0.5em] uppercase">Project Archetype V60 Cloud</p>
+                        <h1 class="text-4xl font-black text-white tracking-widest">{{ reportData.comboName }}</h1>
                     </div>
                 </header>
 
-                <!-- Hook Text -->
-                <div class="mb-16 relative fade-in-up" style="animation-delay: 0.1s">
-                    <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-lg blur-xl"></div>
-                    <div class="relative bg-slate-900/40 border-l-2 border-amber-600/50 p-8 rounded-r-lg">
-                        <i class="fa-solid fa-quote-left text-amber-600/20 text-4xl absolute top-4 left-4"></i>
-                        <p class="text-amber-500/60 text-xs font-bold uppercase tracking-widest mb-4 pl-2">Archetype Disguise</p>
-                        <div class="text-slate-300 text-sm md:text-base leading-loose font-light text-justify" v-html="reportData.hookText"></div>
-                    </div>
+                <!-- 深度解释 -->
+                <div class="mb-12 text-center px-8 py-6 bg-slate-900/50 rounded border border-amber-900/30 fade-in-up" style="animation-delay: 0.2s">
+                    <p class="text-amber-500/80 text-xs font-bold uppercase tracking-widest mb-3">Archetype Disguise</p>
+                    <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText"></div>
                 </div>
 
-                <!-- Report Content Sections -->
-                <div class="space-y-12" v-if="reportData.sections && reportData.sections.length > 0">
-                    <section v-for="(section, index) in reportData.sections" :key="index" class="report-card fade-in-up" :style="{ animationDelay: ((index + 2) * 0.1) + 's' }">
+                <!-- ★★★ 核心修改：这里之前被注释掉了，现在我把注释删除了，文字就能显示了 ★★★ -->
+                <div class="space-y-8" v-if="reportData.sections && reportData.sections.length > 0">
+                    <section v-for="(section, index) in reportData.sections" :key="index" class="report-card fade-in-up" :style="{ animationDelay: ((index + 3) * 0.1) + 's' }">
                         <div class="section-num">{{ '0' + (index + 1) }}</div>
-                        <div class="section-title">
-                            <i v-if="index === 0" class="fa-solid fa-microchip text-amber-600 text-sm"></i>
-                            <i v-else-if="index === 1" class="fa-solid fa-mask text-amber-600 text-sm"></i>
-                            <i v-else-if="index === 2" class="fa-solid fa-skull text-amber-600 text-sm"></i>
-                            <i v-else-if="index === 6" class="fa-solid fa-dharmachakra text-amber-600 text-sm"></i>
-                            <i v-else class="fa-solid fa-star-of-life text-amber-600 text-sm"></i>
-                            {{ section.title }}
-                        </div>
+                        <div class="section-title">{{ section.title }}</div>
                         <span class="section-subtitle">{{ section.subtitle }}</span>
-                        
-                        <!-- Content -->
-                        <div class="report-content" v-html="section.content"></div>
+                        <!-- 显示纯文本内容 -->
+                        <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
                     </section>
                 </div>
-                
-                <div v-else class="text-center text-slate-500 mt-20 fade-in-up">
-                    <p class="animate-pulse">Generating neural pathways...</p>
+                <!-- 如果没有章节数据，显示一个提示 -->
+                <div v-else class="text-center text-slate-500 mt-10">
+                    <p>正在生成深度分析，请稍候...</p>
                 </div>
                 
-                <footer class="text-center text-slate-700 text-[10px] mt-24 pb-8 uppercase tracking-widest">
-                    <p>Encrypted by Source Code Archetype &copy; 2026</p>
+                <footer class="text-center text-slate-600 text-xs mt-16 pb-8 border-t border-slate-900 pt-8">
+                    <p>&copy; 2025 Source Code Archetype. All Rights Reserved.</p>
                 </footer>
             </div>
         </template>
     </div>
 
     <script>
-        const { createApp, ref, onMounted, computed, nextTick } = Vue;
+        const { createApp, ref, onMounted, computed } = Vue;
 
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
+        
+        // 已填入你的 Key
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
         createApp({
@@ -263,19 +131,6 @@
                 const isLoading = ref(true);
                 const fetchError = ref('');
                 const reportData = ref(null);
-
-                const fixIconClasses = () => {
-                    nextTick(() => {
-                        const icons = document.querySelectorAll('.report-content i');
-                        icons.forEach(icon => {
-                            const classes = Array.from(icon.classList);
-                            const isFontAwesome = classes.some(c => c.startsWith('fa-'));
-                            if (isFontAwesome && !icon.classList.contains('fa-solid') && !icon.classList.contains('fa-brands')) {
-                                icon.classList.add('fa-solid');
-                            }
-                        });
-                    });
-                };
 
                 onMounted(async () => {
                     const urlParams = new URLSearchParams(window.location.search);
@@ -292,9 +147,12 @@
                         const rawData = await response.json();
                         
                         if (!response.ok) {
-                            throw new Error(rawData.message || `Server Error: ${response.status}`);
+                            throw new Error(rawData.message || `请求失败: ${response.status}`);
                         }
 
+                        console.log("云端原始数据:", rawData);
+
+                        // ★★★★★ 超级兼容模式 ★★★★★
                         const coreData = rawData.attributes || rawData.meta || rawData;
                         const sectionsData = rawData.sections || coreData.sections || [];
 
@@ -306,21 +164,32 @@
                             sections: sectionsData
                         };
 
-                        fixIconClasses();
-
                     } catch (error) {
-                        console.error("Report Load Error:", error);
-                        fetchError.value = error.message || "Failed to load report data.";
+                        console.error("加载报告失败:", error);
+                        fetchError.value = error.message;
                     } finally {
                         isLoading.value = false;
                     }
                 });
+                
+                const conicGradientStyle = computed(() => {
+                    if (!reportData.value || !reportData.value.main) return {};
+                    const mainPercent = 60; 
+                    const subPercent = 30;
+                    const c1 = reportData.value.main?.color || '#333';
+                    const c2 = reportData.value.second?.color || '#333';
+                    const c3 = reportData.value.wandering?.color || '#333';
+                    
+                    return {
+                        background: `conic-gradient(${c1} 0% ${mainPercent}%, ${c2} ${mainPercent}% ${mainPercent + subPercent}%, ${c3} ${mainPercent + subPercent}% 100%)`
+                    };
+                });
 
                 const saveAsImage = () => {
-                    alert("Image export requires server-side rendering due to cross-origin policies. Please screenshot for now.");
+                    alert("截图功能需部署在服务器环境使用 (html2canvas跨域限制)。\n当前环境请直接使用浏览器截图。");
                 };
 
-                return { isLoading, fetchError, reportData, saveAsImage };
+                return { isLoading, fetchError, reportData, conicGradientStyle, saveAsImage };
             }
         }).mount('#report-app');
     </script>
