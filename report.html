@@ -13,6 +13,8 @@
     <style>
         :root { --c-bg: #020617; }
         body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
+        
+        /* 图腾核心样式 */
         .totem-container { position: relative; width: 340px; height: 340px; margin: 0 auto 2rem auto; overflow: visible !important; }
         .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
         .totem-glow-main { width: 220px; height: 220px; border-radius: 50%; filter: blur(25px); opacity: 0.7; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
@@ -23,7 +25,21 @@
         .totem-orbit-wrapper { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; z-index: 100; pointer-events: none; }
         .totem-orbit-inner { width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); animation: orbit-spin 12s linear infinite; }
         .totem-planet { position: absolute; top: 50%; right: -6px; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
-        .totem-bg-icon { font-size: 10rem; opacity: 0.4; z-index: 3; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); pointer-events: none; }
+        
+        /* ★★★ 关键修复：确保图标垂直居中且显示 ★★★ */
+        .totem-bg-icon { 
+            font-size: 10rem; 
+            opacity: 0.4; 
+            z-index: 3; 
+            filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); 
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        
         .totem-char { font-size: 5.5rem; font-weight: 900; z-index: 11; text-shadow: 0 5px 30px rgba(0,0,0,1); background-clip: text; -webkit-background-clip: text; color: transparent; }
         @keyframes breathe-tight { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; } }
         @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.5; } }
@@ -41,12 +57,11 @@
         .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
         .save-btn:active { transform: scale(0.9); }
 
-        /* ★★★ 核心修复：强制隐藏后端发过来的任何图腾，只由前端渲染 ★★★ */
-        .report-content .totem-container,
-        .report-content .totem-container-fix, 
-        .report-content .totem-container-pro,
-        .report-content .totem-container-server,
-        .report-content .totem-stack-container {
+        /* ★★★ 杀手锏：强制隐藏后端发过来的所有图腾代码，防止冲突 ★★★ */
+        .report-content .totem-container, 
+        .report-content .totem-container-fix,
+        .report-content .totem-stack-container,
+        .report-content .totem-container-pro {
             display: none !important;
         }
     </style>
@@ -87,7 +102,8 @@
                                 <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color }"></div>
                             </div>
                         </div>
-                        <i :class="['totem-bg-icon', 'abs-center', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
+                        <!-- ★★★ 修复点：添加 fa-solid 确保图标显示 ★★★ -->
+                        <i :class="['totem-bg-icon', 'abs-center', 'fa-solid', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
                         <div class="totem-char abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${reportData.main.color} 100%)` }">
                             {{ reportData.main.char }}
                         </div>
@@ -111,7 +127,8 @@
                         <div class="section-title">{{ section.title }}</div>
                         <span class="section-subtitle">{{ section.subtitle }}</span>
                         
-                        <!-- ★★★ 核心修复：第7章 (Index=6) 前端强行渲染完美图腾 ★★★ -->
+                        <!-- ★★★ 核心大招：如果是第 7 章 (Index 6)，前端强行渲染完美图腾 ★★★ -->
+                        <!-- 这样就不用管后端发过来的是什么了，直接无视 -->
                         <div v-if="index === 6" class="mb-12 mt-8 text-center">
                             <div class="totem-container scale-90">
                                 <div class="totem-glow-sub abs-center" :style="{ backgroundColor: reportData.second.color }"></div>
@@ -124,39 +141,75 @@
                                         <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color }"></div>
                                     </div>
                                 </div>
-                                <i :class="['totem-bg-icon', 'abs-center', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
+                                <!-- ★★★ 修复点：这里也加上 fa-solid，填补黑洞 ★★★ -->
+                                <i :class="['totem-bg-icon', 'abs-center', 'fa-solid', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
                                 <div class="totem-char abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 20%, ${reportData.main.color} 100%)` }">
                                     {{ reportData.main.char }}
                                 </div>
                             </div>
 
-                            <!-- 5列数据条 -->
-                            <div class="mt-8 grid grid-cols-5 gap-2 text-center text-[10px] md:text-xs text-slate-500 max-w-md mx-auto">
-                                <div class="p-2 bg-slate-900/50 rounded border border-slate-800">
-                                    <div class="text-xl mb-1 font-bold" :style="{color: reportData.main.color}">{{ reportData.main.char }}</div>
-                                    <div class="text-slate-400">核心</div>
+                            <!-- ★★★ 修复：完美还原 5 列详细数据条 (带光点、标题、描述) ★★★ -->
+                            <div class="mt-10 grid grid-cols-2 md:grid-cols-5 gap-3 text-center max-w-2xl mx-auto px-2">
+                                <!-- 1. 核心 -->
+                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
+                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" :style="{ backgroundColor: reportData.main.color, color: reportData.main.color }"></div>
+                                    <div class="text-sm font-bold text-slate-200 mb-1">
+                                        核心【{{ reportData.main.char }}】
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
+                                        你的灵魂底色
+                                    </div>
                                 </div>
-                                <div class="p-2 bg-slate-900/50 rounded border border-slate-800">
-                                    <div class="text-xl mb-1 font-bold" :style="{color: reportData.second.color}">{{ reportData.second.char }}</div>
-                                    <div class="text-slate-400">皮相</div>
+
+                                <!-- 2. 皮相 -->
+                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
+                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" :style="{ backgroundColor: reportData.second.color, color: reportData.second.color }"></div>
+                                    <div class="text-sm font-bold text-slate-200 mb-1">
+                                        皮相【{{ reportData.second.char }}】
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
+                                        社交面具
+                                    </div>
                                 </div>
-                                <div class="p-2 bg-slate-900/50 rounded border border-slate-800">
-                                    <div class="text-xl mb-1 font-bold" :style="{color: reportData.wandering.color}">{{ reportData.wandering.char }}</div>
-                                    <div class="text-slate-400">游离</div>
+
+                                <!-- 3. 游离 -->
+                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
+                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" :style="{ backgroundColor: reportData.wandering.color, color: reportData.wandering.color }"></div>
+                                    <div class="text-sm font-bold text-slate-200 mb-1">
+                                        游离【{{ reportData.wandering.char }}】
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
+                                        潜意识变量
+                                    </div>
                                 </div>
-                                <div class="p-2 bg-slate-900/50 rounded border border-slate-800">
-                                    <div class="text-xl mb-1 font-bold text-slate-500">缺{{ reportData.missing.char }}</div>
-                                    <div class="text-slate-400">短板</div>
+
+                                <!-- 4. 缺失 -->
+                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
+                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" :style="{ backgroundColor: reportData.missing.color, color: reportData.missing.color }"></div>
+                                    <div class="text-sm font-bold text-slate-200 mb-1">
+                                        缺失【{{ reportData.missing.char }}】
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
+                                        能量短板
+                                    </div>
                                 </div>
-                                <div class="p-2 bg-slate-900/50 rounded border border-slate-800">
-                                    <div class="text-xl mb-1 font-bold" :style="{color: reportData.equilibrium ? reportData.equilibrium.color : '#fff'}">{{ reportData.equilibrium ? reportData.equilibrium.char : '?' }}</div>
-                                    <div class="text-slate-400">进化</div>
+
+                                <!-- 5. 平衡/进化 -->
+                                <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800 flex flex-col items-center justify-center hover:border-slate-600 transition-colors">
+                                    <div class="w-3 h-3 rounded-full mb-3 shadow-[0_0_8px_currentColor]" 
+                                         :style="{ backgroundColor: reportData.equilibrium ? reportData.equilibrium.color : '#94a3b8', color: reportData.equilibrium ? reportData.equilibrium.color : '#94a3b8' }">
+                                    </div>
+                                    <div class="text-sm font-bold text-slate-200 mb-1">
+                                        平衡【{{ reportData.equilibrium ? reportData.equilibrium.char : '?' }}】
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 tracking-wider transform scale-90">
+                                        你的进化方向
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- ★★★ 修复结束 ★★★ -->
+                        <!-- ★★★ 核心大招结束 ★★★ -->
 
-                        <!-- 显示纯文本内容 -->
+                        <!-- 显示纯文本内容 (CSS已强制隐藏这里的图腾) -->
                         <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
                         
                         <!-- SOP 数据显示 -->
@@ -174,7 +227,7 @@
                         </div>
                     </section>
                 </div>
-                <!-- 如果没有章节数据，显示一个提示 -->
+                
                 <div v-else class="text-center text-slate-500 mt-10">
                     <p>正在生成深度分析，请稍候...</p>
                 </div>
