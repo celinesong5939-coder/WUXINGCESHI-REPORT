@@ -15,106 +15,70 @@
         body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
         
         /* =========================================
-           1. 核心图腾样式 (完美复刻 INDEX 风格)
+           1. Galaxy Engine 图腾样式 (与后端完全对齐)
            ========================================= */
-        .totem-container { 
+        .galaxy-container { 
             position: relative; 
-            width: 320px; 
-            height: 320px; 
+            width: 300px; height: 300px; 
             margin: 0 auto 3rem auto; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             z-index: 10;
         }
-        
-        /* 绝对居中定位基准 */
-        .abs-center { 
-            position: absolute; 
-            top: 50%; left: 50%; 
+        .galaxy-abs-center { 
+            position: absolute; top: 50%; left: 50%; 
             transform: translate(-50%, -50%); 
-            pointer-events: none;
         }
-
-        /* 呼吸光晕 - 增强质感 */
-        .totem-glow-main { width: 160px; height: 160px; border-radius: 50%; filter: blur(30px); opacity: 0.6; z-index: 2; animation: breathe-deep 4s ease-in-out infinite; }
-        .totem-glow-sub { width: 280px; height: 280px; border-radius: 50%; filter: blur(50px); opacity: 0.2; z-index: 1; animation: breathe-shallow 6s ease-in-out infinite; }
         
-        /* 机械圆环结构 */
-        .totem-outer-ring { width: 240px; height: 240px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 0 30px rgba(0,0,0,0.5) inset; z-index: 5; }
-        .totem-inner-ring { width: 220px; height: 220px; border-radius: 50%; mask: radial-gradient(transparent 60%, black 61%); -webkit-mask: radial-gradient(transparent 60%, black 61%); opacity: 0.8; z-index: 4; }
-        .totem-ring-overlay { width: 220px; height: 220px; border-radius: 50%; z-index: 6; pointer-events: none; box-shadow: inset 2px 2px 10px rgba(255,255,255,0.1), inset -2px -2px 10px rgba(0,0,0,0.8); }
+        /* 核心光晕 */
+        .galaxy-core-glow { 
+            width: 140px; height: 140px; border-radius: 50%; 
+            filter: blur(40px); opacity: 0.6; z-index: 1; 
+            animation: galaxy-pulse 4s ease-in-out infinite; 
+        }
         
-        /* 核心修复：轨道系统 (使用容器旋转，确保绝对同心) */
-        .totem-orbit-wrapper { 
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; 
-            z-index: 3; pointer-events: none;
+        /* 机械圆环 */
+        .galaxy-ring-outer { 
+            width: 240px; height: 240px; border-radius: 50%; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5); z-index: 5; 
+        }
+        .galaxy-ring-inner { 
+            width: 210px; height: 210px; border-radius: 50%; 
+            mask: radial-gradient(transparent 62%, black 63%); 
+            -webkit-mask: radial-gradient(transparent 62%, black 63%); 
+            opacity: 0.9; z-index: 4; 
+        }
+        
+        /* 轨道系统 */
+        .galaxy-orbit-track {
+            width: 280px; height: 280px; border-radius: 50%;
+            border: 1px dashed rgba(255,255,255,0.15);
+            animation: galaxy-spin-slow 30s linear infinite;
+            z-index: 3;
+        }
+        
+        .galaxy-planet-dot {
+            position: absolute; top: 50%; right: -5px;
+            width: 10px; height: 10px; border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+        }
+        
+        /* 图标与文字 */
+        .galaxy-icon { 
+            font-size: 7rem; opacity: 0.15; z-index: 2; 
+            color: currentColor;
             display: flex; justify-content: center; align-items: center;
-        }
-        
-        /* 轨道线 */
-        .totem-orbit-track {
-            position: absolute;
-            border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.05);
-            /* 居中修正 */
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        /* 行星旋转容器 */
-        .planet-spinner {
-            position: absolute;
             width: 100%; height: 100%;
-            animation: spin-right 20s linear infinite;
         }
-        
-        /* 行星本体 */
-        .totem-planet { 
-            position: absolute; 
-            top: 50%; right: 40px; /* 控制轨道半径 */
-            width: 10px; height: 10px; 
-            border-radius: 50%; 
-            background: currentColor; 
-            box-shadow: 0 0 15px currentColor, 0 0 5px white;
-            z-index: 20;
-        }
-        
-        /* 虚线平衡圈 (Chapter 7 专用) */
-        .equilibrium-ring {
-            width: 300px; height: 300px;
-            border: 1px dashed rgba(255,255,255,0.2);
-            border-radius: 50%;
-            animation: spin-left 30s linear infinite;
-        }
-
-        /* 背景大图标 */
-        .totem-bg-icon { 
-            font-size: 8rem; 
-            opacity: 0.15; 
-            z-index: 3; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%; height: 100%;
-            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
-        }
-        
-        /* 中心文字 */
-        .totem-char { 
-            font-size: 4.5rem; font-weight: 900; 
+        .galaxy-char { 
+            font-size: 4.5rem; font-weight: 900; z-index: 10; 
             background-clip: text; -webkit-background-clip: text; color: transparent; 
-            text-shadow: 0 10px 30px rgba(0,0,0,0.9); 
-            position: relative; z-index: 11; 
-            font-family: 'Noto Serif SC', serif;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.8); 
         }
 
         /* 动画定义 */
-        @keyframes breathe-deep { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; } }
-        @keyframes breathe-shallow { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.1; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.3; } }
-        @keyframes spin-right { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes spin-left { from { transform: translate(-50%, -50%) rotate(360deg); } to { transform: translate(-50%, -50%) rotate(0deg); } }
+        @keyframes galaxy-pulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; } 50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.8; } }
+        @keyframes galaxy-spin-slow { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
         
         /* =========================================
            2. 报告卡片样式
@@ -177,39 +141,36 @@
                 <!-- Header Section -->
                 <header class="text-center mb-20 fade-in-up">
                     
-                    <!-- ★★★ 顶部图腾 (Front-end Rendered) ★★★ -->
-                    <div class="totem-container">
-                        <!-- 动态光晕 -->
-                        <div class="totem-glow-sub abs-center" :style="{ backgroundColor: reportData.second.color }"></div>
-                        <div class="totem-glow-main abs-center" :style="{ backgroundColor: reportData.main.color }"></div>
+                    <!-- Galaxy Engine Totem (前端渲染，与后端完全一致) -->
+                    <div class="galaxy-container">
+                        <!-- 1. 核心光晕 -->
+                        <div class="galaxy-core-glow galaxy-abs-center" :style="{ backgroundColor: reportData.main.color }"></div>
                         
-                        <!-- 机械结构 -->
-                        <div class="totem-outer-ring abs-center" :style="{ borderColor: reportData.main.color }"></div>
-                        <div class="totem-inner-ring abs-center" :style="conicGradientStyle"></div>
-                        <div class="totem-ring-overlay abs-center"></div>
+                        <!-- 2. 外部机械环 -->
+                        <div class="galaxy-ring-outer galaxy-abs-center" :style="{ borderColor: reportData.main.color + '40' }"></div>
                         
-                        <!-- 轨道系统 -->
-                        <div class="totem-orbit-wrapper">
-                            <!-- 辅助轨道线 -->
-                            <div class="totem-orbit-track" style="width: 220px; height: 220px;"></div>
-                            <!-- 行星 -->
-                            <div class="planet-spinner">
-                                <div class="totem-planet" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color, right: '45px' }"></div>
-                            </div>
+                        <!-- 3. 内部能量环 -->
+                        <div class="galaxy-ring-inner galaxy-abs-center" :style="conicGradientStyle"></div>
+                        
+                        <!-- 4. 轨道系统 -->
+                        <div class="galaxy-orbit-track galaxy-abs-center" :style="{ borderColor: reportData.equilibrium.color + '30' }">
+                            <div class="galaxy-planet-dot" :style="{ color: reportData.wandering.color, backgroundColor: reportData.wandering.color }"></div>
                         </div>
                         
-                        <!-- 核心图标 (强制添加 fa-solid 修复显示问题) -->
-                        <i :class="['totem-bg-icon', 'abs-center', 'fa-solid', reportData.main.icon]" :style="{ color: reportData.main.color }"></i>
+                        <!-- 5. 背景大图标 -->
+                        <div class="galaxy-icon galaxy-abs-center" :style="{ color: reportData.main.color }">
+                            <i :class="['fa-solid', reportData.main.icon]"></i>
+                        </div>
                         
-                        <!-- 中心字符 -->
-                        <div class="totem-char abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 10%, ${reportData.main.color} 100%)` }">
+                        <!-- 6. 中心字符 -->
+                        <div class="galaxy-char galaxy-abs-center" :style="{ backgroundImage: `linear-gradient(180deg, #fff 10%, ${reportData.main.color} 100%)` }">
                             {{ reportData.main.char }}
                         </div>
                     </div>
                     
                     <div class="space-y-3 relative z-20">
                         <div class="inline-block px-3 py-1 border border-amber-900/50 rounded-full bg-amber-900/10 backdrop-blur-sm mb-4">
-                            <p class="text-amber-500 text-[10px] tracking-[0.3em] uppercase font-bold">Project Archetype V60</p>
+                            <p class="text-amber-500 text-[10px] tracking-[0.3em] uppercase font-bold">Project Archetype V60 Cloud</p>
                         </div>
                         <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 tracking-widest">{{ reportData.comboName }}</h1>
                     </div>
@@ -260,6 +221,7 @@
         const { createApp, ref, onMounted, computed, nextTick } = Vue;
 
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
+        // 已填入你的 Key
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
         createApp({
@@ -283,7 +245,7 @@
                         });
                         
                         // 特别针对 Chapter 7 的图腾背景图标
-                        const totemBgIcons = document.querySelectorAll('.totem-bg-icon i');
+                        const totemBgIcons = document.querySelectorAll('.galaxy-icon i');
                         totemBgIcons.forEach(icon => icon.classList.add('fa-solid'));
                     });
                 };
@@ -333,6 +295,7 @@
                     if (!reportData.value || !reportData.value.main) return {};
                     const mainPercent = 60; 
                     const subPercent = 30;
+                    // 容错处理，防止 main.color 为空时报错
                     const c1 = reportData.value.main?.color || '#333';
                     const c2 = reportData.value.second?.color || '#444';
                     const c3 = reportData.value.wandering?.color || '#555';
