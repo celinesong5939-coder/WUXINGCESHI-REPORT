@@ -91,12 +91,26 @@
             /* 兜底颜色，防止渐变失效看不见 */
             -webkit-text-fill-color: transparent;
         }
+/* Chapter 7 专属修复 */
+.chapter-totem .totem-container {
+    transform: scale(0.8);
+    margin: 1rem auto;
+    /* 强制重置定位，防止飞出卡片 */
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+}
 
-        /* Chapter 7 专用修复：防止样式污染 */
-        .chapter-totem .totem-container {
-            transform: scale(0.8); /*稍微缩小一点适应卡片*/
-            margin-bottom: 1rem;
-        }
+/* 确保后端生成的 HTML 里的文字颜色能正确显示 */
+.totem-char {
+    /* 确保渐变生效 */
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    color: transparent !important;
+    /* 提高层级 */
+    z-index: 100 !important;
+}
         
         /* 动画定义 */
         @keyframes breathe { 0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.95); } 50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.05); } }
@@ -318,3 +332,4 @@
     </script>
 </body>
 </html>
+
