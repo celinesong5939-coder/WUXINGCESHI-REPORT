@@ -212,7 +212,7 @@
             50% { opacity: 1; }
         }
         
-        /* 报告卡片样式保持不变 */
+        /* 报告卡片样式 */
         .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
         .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.1); }
         .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; }
@@ -225,6 +225,47 @@
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
         .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
         .save-btn:active { transform: scale(0.9); }
+        
+        /* CHAPTER7图腾特殊样式 */
+        .chapter7-totem-container {
+            width: 280px !important;
+            height: 280px !important;
+            margin: 2rem auto;
+        }
+        
+        .chapter7-totem-container .planet-core {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .chapter7-totem-container .planet-atmosphere {
+            width: 180px;
+            height: 180px;
+        }
+        
+        .chapter7-totem-container .planet-orbits {
+            width: 240px;
+            height: 240px;
+        }
+        
+        .chapter7-totem-container .orbit-ring-1 {
+            width: 240px;
+            height: 240px;
+        }
+        
+        .chapter7-totem-container .orbit-ring-2 {
+            width: 200px;
+            height: 200px;
+        }
+        
+        .chapter7-totem-container .wandering-orbit-path {
+            width: 140px;
+            height: 140px;
+        }
+        
+        .chapter7-totem-container .element-char {
+            font-size: 3rem;
+        }
     </style>
 </head>
 <body>
@@ -251,78 +292,21 @@
                 <!-- 头部 -->
                 <header class="text-center mb-16 fade-in-up">
                     
-                    <!-- 新版3D小行星图腾 -->
-                    <div class="totem-container-3d mb-8">
-                        <div class="totem-3d-wrapper">
-                            <!-- 背景星空 -->
-                            <div class="stars">
-                                <div v-for="star in stars" :key="star.id" 
-                                     class="star"
-                                     :style="{
-                                         left: star.x + '%',
-                                         top: star.y + '%',
-                                         width: star.size + 'px',
-                                         height: star.size + 'px',
-                                         opacity: star.opacity,
-                                         animationDelay: star.delay + 's'
-                                     }">
-                                </div>
-                            </div>
-                            
-                            <!-- 副属性光晕 -->
-                            <div class="planet-atmosphere" :style="{ color: reportData.second?.color || '#4ade80' }"></div>
-                            
-                            <!-- 行星轨道 -->
-                            <div class="planet-orbits">
-                                <div class="orbit-ring orbit-ring-1" :style="{ color: reportData.balanced?.color || '#94a3b8' }"></div>
-                                <div class="orbit-ring orbit-ring-2" :style="{ color: reportData.balanced?.color || '#94a3b8' }"></div>
-                                
-                                <!-- 游离态轨道路径 -->
-                                <div class="wandering-orbit-path" :style="{ borderColor: reportData.wandering?.color || '#60a5fa' }"></div>
-                            </div>
-                            
-                            <!-- 主属性行星 -->
-                            <div class="planet-core" :style="{ color: reportData.main?.color || '#3b82f6' }"></div>
-                            
-                            <!-- 游离态小光圈 -->
-                            <div class="wandering-orb wandering-orb-1" :style="{ color: reportData.wandering?.color || '#60a5fa' }"></div>
-                            <div class="wandering-orb wandering-orb-2" :style="{ color: reportData.wandering?.color || '#60a5fa' }"></div>
-                            
-                            <!-- 五行字符 -->
-                            <div class="element-char">{{ reportData.main?.char || '金' }}</div>
-                        </div>
-                        
-                        <!-- 图腾元数据 -->
-                        <div class="totem-metadata">
-                            <div class="text-sm text-slate-400 space-y-1">
-                                <div class="flex justify-center items-center space-x-6">
-                                    <div class="flex items-center">
-                                        <div class="w-3 h-3 rounded-full mr-2" :style="{ backgroundColor: reportData.main?.color || '#3b82f6' }"></div>
-                                        <span>内核: {{ reportData.main?.name || '金' }}</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-3 h-3 rounded-full mr-2" :style="{ backgroundColor: reportData.second?.color || '#4ade80' }"></div>
-                                        <span>面具: {{ reportData.second?.name || '木' }}</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div class="w-3 h-3 rounded-full mr-2" :style="{ backgroundColor: reportData.wandering?.color || '#60a5fa' }"></div>
-                                        <span>游离态: {{ reportData.wandering?.name || '水' }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- 页面顶部3D小行星图腾 -->
+                    <div class="totem-container-3d mb-8" id="header-totem">
+                        <!-- 由JavaScript动态渲染 -->
                     </div>
                     
                     <div class="space-y-2">
                         <p class="text-amber-600 text-xs tracking-[0.5em] uppercase">Project Archetype V60 Cloud</p>
-                        <h1 class="text-4xl font-black text-white tracking-widest">{{ reportData.comboName }}</h1>
+                        <h1 class="text-4xl font-black text-white tracking-widest">{{ reportData.comboName || '五行人格报告' }}</h1>
                     </div>
                 </header>
 
                 <!-- 深度解释 -->
                 <div class="mb-12 text-center px-8 py-6 bg-slate-900/50 rounded border border-amber-900/30 fade-in-up" style="animation-delay: 0.2s">
                     <p class="text-amber-500/80 text-xs font-bold uppercase tracking-widest mb-3">Archetype Disguise</p>
-                    <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText"></div>
+                    <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText || '你的面具与内核的独特配置'"></div>
                 </div>
 
                 <!-- 章节内容 -->
@@ -331,76 +315,6 @@
                         <div class="section-num">{{ '0' + (index + 1) }}</div>
                         <div class="section-title">{{ section.title }}</div>
                         <span class="section-subtitle">{{ section.subtitle }}</span>
-                        
-                        <!-- 如果是CHAPTER7，插入第二个图腾 -->
-                        <div v-if="index === 6" class="my-12">
-                            <div class="text-center mb-6">
-                                <h4 class="text-xl font-bold text-slate-300 mb-2">能量场图腾</h4>
-                                <p class="text-slate-500 text-sm">你的【{{ reportData.main?.name || '金' }}】内核在【{{ reportData.second?.name || '木' }}】面具下的能量分布</p>
-                            </div>
-                            
-                            <!-- CHAPTER7图腾 - 与顶部相同的3D小行星 -->
-                            <div class="totem-container-3d" style="width: 280px; height: 280px;">
-                                <div class="totem-3d-wrapper">
-                                    <!-- 副属性光晕 -->
-                                    <div class="planet-atmosphere" :style="{ 
-                                        width: '180px', 
-                                        height: '180px',
-                                        color: reportData.second?.color || '#4ade80' 
-                                    }"></div>
-                                    
-                                    <!-- 行星轨道 -->
-                                    <div class="planet-orbits" style="width: 240px; height: 240px;">
-                                        <div class="orbit-ring orbit-ring-1" :style="{ 
-                                            width: '240px', 
-                                            height: '240px',
-                                            color: reportData.balanced?.color || '#94a3b8' 
-                                        }"></div>
-                                        
-                                        <!-- 游离态轨道路径 -->
-                                        <div class="wandering-orbit-path" :style="{ 
-                                            width: '140px', 
-                                            height: '140px',
-                                            borderColor: reportData.wandering?.color || '#60a5fa' 
-                                        }"></div>
-                                    </div>
-                                    
-                                    <!-- 主属性行星 -->
-                                    <div class="planet-core" :style="{ 
-                                        width: '120px', 
-                                        height: '120px',
-                                        color: reportData.main?.color || '#3b82f6' 
-                                    }"></div>
-                                    
-                                    <!-- 游离态小光圈 -->
-                                    <div class="wandering-orb wandering-orb-1" :style="{ 
-                                        color: reportData.wandering?.color || '#60a5fa',
-                                        animation: 'wandering-orbit-1 6s linear infinite'
-                                    }"></div>
-                                    
-                                    <!-- 五行字符 -->
-                                    <div class="element-char" style="font-size: 3rem;">{{ reportData.main?.char || '金' }}</div>
-                                </div>
-                            </div>
-                            
-                            <!-- 图腾解释 -->
-                            <div class="mt-8 p-4 bg-slate-900/30 rounded-lg">
-                                <div class="grid grid-cols-3 gap-4 text-sm">
-                                    <div class="text-center p-3 rounded" :style="{ backgroundColor: reportData.main?.color + '20' || 'rgba(59, 130, 246, 0.1)' }">
-                                        <div class="font-bold mb-1" :style="{ color: reportData.main?.color || '#3b82f6' }">{{ reportData.main?.name || '金' }}内核</div>
-                                        <div class="text-xs text-slate-400">行星主体 · 真实自我</div>
-                                    </div>
-                                    <div class="text-center p-3 rounded" :style="{ backgroundColor: reportData.second?.color + '20' || 'rgba(74, 222, 128, 0.1)' }">
-                                        <div class="font-bold mb-1" :style="{ color: reportData.second?.color || '#4ade80' }">{{ reportData.second?.name || '木' }}光晕</div>
-                                        <div class="text-xs text-slate-400">向外展现 · 社会面具</div>
-                                    </div>
-                                    <div class="text-center p-3 rounded" :style="{ backgroundColor: reportData.wandering?.color + '20' || 'rgba(96, 165, 250, 0.1)' }">
-                                        <div class="font-bold mb-1" :style="{ color: reportData.wandering?.color || '#60a5fa' }">{{ reportData.wandering?.name || '水' }}游离</div>
-                                        <div class="text-xs text-slate-400">能量缓冲 · 恢复机制</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         
                         <!-- 显示章节内容 -->
                         <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
@@ -420,35 +334,310 @@
     </div>
 
     <script>
-        const { createApp, ref, onMounted, computed } = Vue;
+        const { createApp, ref, onMounted, watch, nextTick } = Vue;
 
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
         
         // 已填入你的 Key
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
-        // 生成星空背景
-        function generateStars(count) {
-            const stars = [];
-            for (let i = 0; i < count; i++) {
-                stars.push({
-                    id: i,
-                    x: Math.random() * 100,
-                    y: Math.random() * 100,
-                    size: Math.random() * 2 + 1,
-                    opacity: Math.random() * 0.5 + 0.3,
-                    delay: Math.random() * 3
-                });
+        // 3D小行星图腾渲染函数
+        function render3DTotem(totemData, containerId = 'header-totem', size = 'large') {
+            const container = document.getElementById(containerId);
+            if (!container || !totemData) return;
+            
+            // 定义五行颜色映射（基于TOTEM_DATA）
+            const colorMap = {
+                metal: { 
+                    color_hex: '#94a3b8',
+                    glow_color: 'rgba(148, 163, 184, 0.7)',
+                    text_color: '#f1f5f9'
+                },
+                wood: { 
+                    color_hex: '#10b981',
+                    glow_color: 'rgba(16, 185, 129, 0.7)',
+                    text_color: '#d1fae5'
+                },
+                water: { 
+                    color_hex: '#3b82f6',
+                    glow_color: 'rgba(59, 130, 246, 0.7)',
+                    text_color: '#dbeafe'
+                },
+                fire: { 
+                    color_hex: '#ef4444',
+                    glow_color: 'rgba(239, 68, 68, 0.7)',
+                    text_color: '#fee2e2'
+                },
+                earth: { 
+                    color_hex: '#f59e0b',
+                    glow_color: 'rgba(245, 158, 11, 0.7)',
+                    text_color: '#fef3c7'
+                }
+            };
+            
+            // 定义五行字符映射
+            const charMap = {
+                metal: '⚪',
+                wood: '🟢',
+                water: '🔵',
+                fire: '🔴',
+                earth: '🟡'
+            };
+            
+            // 定义五行名称映射
+            const nameMap = {
+                metal: '金',
+                wood: '木',
+                water: '水',
+                fire: '火',
+                earth: '土'
+            };
+            
+            // 确保有默认值
+            const main = totemData.main || { 
+                element: 'metal',
+                name: '金',
+                char: '⚪',
+                color_hex: '#94a3b8'
+            };
+            
+            const second = totemData.second || { 
+                element: 'wood',
+                name: '木',
+                char: '🟢',
+                color_hex: '#10b981'
+            };
+            
+            const wandering = totemData.wandering || { 
+                element: 'water',
+                name: '水',
+                char: '🔵',
+                color_hex: '#3b82f6'
+            };
+            
+            const balanced = totemData.balanced || { 
+                name: '均衡',
+                char: '⚖',
+                color_hex: '#94a3b8'
+            };
+            
+            // 如果传入的是字符串元素，转换为对象
+            if (typeof main === 'string') {
+                main.element = main;
+                main.color_hex = colorMap[main]?.color_hex || '#94a3b8';
+                main.char = charMap[main] || '⚪';
+                main.name = nameMap[main] || '金';
             }
-            return stars;
+            
+            if (typeof second === 'string') {
+                second.element = second;
+                second.color_hex = colorMap[second]?.color_hex || '#10b981';
+                second.char = charMap[second] || '🟢';
+                second.name = nameMap[second] || '木';
+            }
+            
+            if (typeof wandering === 'string') {
+                wandering.element = wandering;
+                wandering.color_hex = colorMap[wandering]?.color_hex || '#3b82f6';
+                wandering.char = charMap[wandering] || '🔵';
+                wandering.name = nameMap[wandering] || '水';
+            }
+            
+            // 生成星空背景
+            function generateStars(count) {
+                let starsHTML = '';
+                for (let i = 0; i < count; i++) {
+                    const x = Math.random() * 100;
+                    const y = Math.random() * 100;
+                    const size = Math.random() * 2 + 1;
+                    const opacity = Math.random() * 0.5 + 0.3;
+                    const delay = Math.random() * 3;
+                    starsHTML += `
+                        <div class="star" style="
+                            left: ${x}%;
+                            top: ${y}%;
+                            width: ${size}px;
+                            height: ${size}px;
+                            opacity: ${opacity};
+                            animation-delay: ${delay}s;
+                        "></div>
+                    `;
+                }
+                return starsHTML;
+            }
+            
+            // 根据尺寸设置参数
+            const sizes = {
+                large: { 
+                    container: '360px', 
+                    planet: '160px', 
+                    atmosphere: '240px',
+                    orbit: '320px',
+                    innerOrbit: '280px',
+                    wanderingOrbit: '200px',
+                    charSize: '4rem'
+                },
+                medium: { 
+                    container: '280px', 
+                    planet: '120px', 
+                    atmosphere: '180px',
+                    orbit: '240px',
+                    innerOrbit: '200px',
+                    wanderingOrbit: '140px',
+                    charSize: '3rem'
+                }
+            };
+            
+            const style = sizes[size] || sizes.large;
+            
+            // 构建图腾HTML
+            const totemHTML = `
+                <div class="totem-3d-wrapper" style="width: ${style.container}; height: ${style.container};">
+                    <!-- 背景星空 -->
+                    <div class="stars">
+                        ${generateStars(50)}
+                    </div>
+                    
+                    <!-- 副属性光晕 -->
+                    <div class="planet-atmosphere" style="
+                        width: ${style.atmosphere};
+                        height: ${style.atmosphere};
+                        color: ${second.color_hex};
+                    "></div>
+                    
+                    <!-- 行星轨道 -->
+                    <div class="planet-orbits" style="width: ${style.orbit}; height: ${style.orbit};">
+                        <div class="orbit-ring orbit-ring-1" style="
+                            width: ${style.orbit};
+                            height: ${style.orbit};
+                            color: ${balanced.color_hex};
+                        "></div>
+                        <div class="orbit-ring orbit-ring-2" style="
+                            width: ${style.innerOrbit};
+                            height: ${style.innerOrbit};
+                            color: ${balanced.color_hex};
+                        "></div>
+                        
+                        <!-- 游离态轨道路径 -->
+                        <div class="wandering-orbit-path" style="
+                            width: ${style.wanderingOrbit};
+                            height: ${style.wanderingOrbit};
+                            border-color: ${wandering.color_hex};
+                        "></div>
+                    </div>
+                    
+                    <!-- 主属性行星 -->
+                    <div class="planet-core" style="
+                        width: ${style.planet};
+                        height: ${style.planet};
+                        color: ${main.color_hex};
+                    "></div>
+                    
+                    <!-- 游离态小光圈 -->
+                    <div class="wandering-orb wandering-orb-1" style="color: ${wandering.color_hex};"></div>
+                    <div class="wandering-orb wandering-orb-2" style="color: ${wandering.color_hex};"></div>
+                    
+                    <!-- 五行字符 -->
+                    <div class="element-char" style="font-size: ${style.charSize}; color: ${main.color_hex};">${main.char}</div>
+                </div>
+                
+                <!-- 图腾元数据 -->
+                <div class="totem-metadata">
+                    <div class="text-sm text-slate-400 space-y-1">
+                        <div class="flex justify-center items-center space-x-6">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full mr-2" style="background-color: ${main.color_hex}"></div>
+                                <span>内核: ${main.name}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full mr-2" style="background-color: ${second.color_hex}"></div>
+                                <span>面具: ${second.name}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full mr-2" style="background-color: ${wandering.color_hex}"></div>
+                                <span>游离态: ${wandering.name}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = totemHTML;
+            
+            // 如果是CHAPTER7的容器，添加特殊类
+            if (containerId === 'chapter7-totem-container') {
+                container.classList.add('chapter7-totem-container');
+            }
         }
 
+        // 从CHAPTER7内容中提取图腾数据
+        function extractTotemDataFromChapter7() {
+            // 方法1：从隐藏的script标签获取
+            const scriptTag = document.querySelector('#totem-data');
+            if (scriptTag) {
+                try {
+                    return JSON.parse(scriptTag.textContent);
+                } catch (e) {
+                    console.error('解析图腾数据失败:', e);
+                }
+            }
+            
+            // 方法2：从data属性获取
+            const container = document.querySelector('#chapter7-totem-container');
+            if (container && container.dataset.totem) {
+                try {
+                    const dataStr = container.dataset.totem
+                        .replace(/&quot;/g, '"')
+                        .replace(/&#39;/g, "'");
+                    return JSON.parse(dataStr);
+                } catch (e) {
+                    console.error('解析data-totem失败:', e);
+                }
+            }
+            
+            // 方法3：从CHAPTER7的HTML内容中解析
+            const chapter7Content = document.querySelector('.report-content');
+            if (chapter7Content) {
+                const totemDataMatch = chapter7Content.innerHTML.match(/data-totem='([^']+)'/);
+                if (totemDataMatch) {
+                    try {
+                        const dataStr = totemDataMatch[1]
+                            .replace(/&quot;/g, '"')
+                            .replace(/&#39;/g, "'");
+                        return JSON.parse(dataStr);
+                    } catch (e) {
+                        console.error('从HTML解析图腾数据失败:', e);
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        // 渲染CHAPTER7图腾
+        function renderChapter7Totem() {
+            const totemData = extractTotemDataFromChapter7();
+            if (totemData) {
+                render3DTotem(totemData, 'chapter7-totem-container', 'medium');
+                
+                // 隐藏加载指示器
+                const loading = document.getElementById('totem-loading');
+                if (loading) loading.style.display = 'none';
+                
+                console.log('CHAPTER7图腾渲染成功');
+            } else {
+                console.log('未找到CHAPTER7图腾数据，等待内容加载...');
+                // 如果没有立即找到，稍后再试
+                setTimeout(renderChapter7Totem, 500);
+            }
+        }
+
+        // 初始化Vue应用
         createApp({
             setup() {
                 const isLoading = ref(true);
                 const fetchError = ref('');
                 const reportData = ref(null);
-                const stars = ref(generateStars(50));
 
                 onMounted(async () => {
                     const urlParams = new URLSearchParams(window.location.search);
@@ -473,14 +662,6 @@
                         // 处理数据
                         const coreData = rawData.attributes || rawData.meta || rawData;
                         const sectionsData = rawData.sections || coreData.sections || [];
-                        
-                        // 确保有均衡态颜色（使用灰色作为默认）
-                        if (!coreData.balanced) {
-                            coreData.balanced = {
-                                name: '均衡',
-                                color: '#94a3b8'
-                            };
-                        }
 
                         reportData.value = {
                             ...rawData,
@@ -498,6 +679,46 @@
                     }
                 });
                 
+                // 监听报告数据变化，渲染页面顶部图腾
+                watch(() => reportData.value, (newValue) => {
+                    if (newValue) {
+                        // 等待DOM更新后渲染页面顶部图腾
+                        nextTick(() => {
+                            // 从报告数据中提取图腾信息
+                            const mainElement = newValue.main?.element || newValue.m || 'metal';
+                            const secondElement = newValue.second?.element || newValue.s || 'wood';
+                            const wanderingElement = newValue.wandering?.element || newValue.w || 'water';
+                            
+                            const totemData = {
+                                main: mainElement,
+                                second: secondElement,
+                                wandering: wanderingElement,
+                                balanced: { name: '均衡', char: '⚖', color_hex: '#94a3b8' }
+                            };
+                            
+                            render3DTotem(totemData, 'header-totem', 'large');
+                            
+                            // 检查是否有CHAPTER7内容，如果有则渲染CHAPTER7图腾
+                            if (newValue.sections && newValue.sections.length >= 7) {
+                                // 等待CHAPTER7内容完全渲染
+                                setTimeout(() => {
+                                    renderChapter7Totem();
+                                }, 1000);
+                            }
+                        });
+                    }
+                }, { immediate: true });
+                
+                // 监听章节内容变化，尝试渲染CHAPTER7图腾
+                watch(() => reportData.value?.sections, (newSections) => {
+                    if (newSections && newSections.length >= 7) {
+                        // 等待DOM完全渲染后尝试渲染CHAPTER7图腾
+                        setTimeout(() => {
+                            renderChapter7Totem();
+                        }, 1500);
+                    }
+                }, { deep: true });
+
                 const saveAsImage = () => {
                     alert("截图功能需部署在服务器环境使用 (html2canvas跨域限制)。\n当前环境请直接使用浏览器截图。");
                 };
@@ -506,7 +727,6 @@
                     isLoading, 
                     fetchError, 
                     reportData, 
-                    stars,
                     saveAsImage 
                 };
             }
