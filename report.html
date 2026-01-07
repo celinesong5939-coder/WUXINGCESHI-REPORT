@@ -341,12 +341,12 @@
         // 已填入你的 Key
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
-        // 3D小行星图腾渲染函数
+        // 3D小行星图腾渲染函数 (保持不变，因为效果很好)
         function render3DTotem(totemData, containerId = 'header-totem', size = 'large') {
             const container = document.getElementById(containerId);
             if (!container || !totemData) return;
             
-            // 定义五行颜色映射（基于TOTEM_DATA）
+            // 定义五行颜色映射
             const colorMap = {
                 metal: { 
                     color_hex: '#94a3b8',
@@ -570,64 +570,46 @@
             }
         }
 
-        // 从CHAPTER7内容中提取图腾数据
-        function extractTotemDataFromChapter7() {
-            // 方法1：从隐藏的script标签获取
-            const scriptTag = document.querySelector('#totem-data');
-            if (scriptTag) {
-                try {
-                    return JSON.parse(scriptTag.textContent);
-                } catch (e) {
-                    console.error('解析图腾数据失败:', e);
-                }
-            }
-            
-            // 方法2：从data属性获取
-            const container = document.querySelector('#chapter7-totem-container');
-            if (container && container.dataset.totem) {
-                try {
-                    const dataStr = container.dataset.totem
-                        .replace(/&quot;/g, '"')
-                        .replace(/&#39;/g, "'");
-                    return JSON.parse(dataStr);
-                } catch (e) {
-                    console.error('解析data-totem失败:', e);
-                }
-            }
-            
-            // 方法3：从CHAPTER7的HTML内容中解析
-            const chapter7Content = document.querySelector('.report-content');
-            if (chapter7Content) {
-                const totemDataMatch = chapter7Content.innerHTML.match(/data-totem='([^']+)'/);
-                if (totemDataMatch) {
-                    try {
-                        const dataStr = totemDataMatch[1]
-                            .replace(/&quot;/g, '"')
-                            .replace(/&#39;/g, "'");
-                        return JSON.parse(dataStr);
-                    } catch (e) {
-                        console.error('从HTML解析图腾数据失败:', e);
-                    }
-                }
-            }
-            
-            return null;
-        }
-
-        // 渲染CHAPTER7图腾
+        // ===============================================
+        // 修改版：CHAPTER7图腾渲染
+        // 现在直接读取后端传回来的 data-m, data-s, data-w 标签
+        // 不再需要解析复杂的 JSON 或脚本
+        // ===============================================
         function renderChapter7Totem() {
-            const totemData = extractTotemDataFromChapter7();
-            if (totemData) {
+            // 尝试获取后端生成的占位容器
+            const container = document.getElementById('chapter7-totem-container');
+            
+            if (!container) {
+                // 如果还未生成，稍后再试
+                setTimeout(renderChapter7Totem, 500);
+                return;
+            }
+
+            // 读取数据标签 (这是新版后端生成的关键数据)
+            const m = container.dataset.m;
+            const s = container.dataset.s;
+            const w = container.dataset.w;
+
+            // 如果数据存在，开始渲染
+            if (m && s && w) {
+                // 构建图腾数据对象
+                const totemData = {
+                    main: m,
+                    second: s,
+                    wandering: w,
+                    balanced: { name: '均衡', char: '⚖', color_hex: '#94a3b8' }
+                };
+                
+                // 调用渲染引擎
                 render3DTotem(totemData, 'chapter7-totem-container', 'medium');
                 
-                // 隐藏加载指示器
+                // 隐藏加载圈
                 const loading = document.getElementById('totem-loading');
                 if (loading) loading.style.display = 'none';
                 
-                console.log('CHAPTER7图腾渲染成功');
+                console.log('CHAPTER7图腾渲染成功', totemData);
             } else {
-                console.log('未找到CHAPTER7图腾数据，等待内容加载...');
-                // 如果没有立即找到，稍后再试
+                console.log('CHAPTER7容器已就绪，但等待数据属性注入...');
                 setTimeout(renderChapter7Totem, 500);
             }
         }
@@ -682,12 +664,12 @@
                 // 监听报告数据变化，渲染页面顶部图腾
                 watch(() => reportData.value, (newValue) => {
                     if (newValue) {
-                        // 等待DOM更新后渲染页面顶部图腾
                         nextTick(() => {
-                            // 从报告数据中提取图腾信息
-                            const mainElement = newValue.main?.element || newValue.m || 'metal';
-                            const secondElement = newValue.second?.element || newValue.s || 'wood';
-                            const wanderingElement = newValue.wandering?.element || newValue.w || 'water';
+                            // 优先读取后端直接返回的顶层属性 (m, s, w)
+                            // 这解决了顶部星球显示 undefined 的问题
+                            const mainElement = newValue.m || newValue.main?.element || 'metal';
+                            const secondElement = newValue.s || newValue.second?.element || 'wood';
+                            const wanderingElement = newValue.w || newValue.wandering?.element || 'water';
                             
                             const totemData = {
                                 main: mainElement,
@@ -698,9 +680,8 @@
                             
                             render3DTotem(totemData, 'header-totem', 'large');
                             
-                            // 检查是否有CHAPTER7内容，如果有则渲染CHAPTER7图腾
+                            // 触发 C7 图腾渲染检查
                             if (newValue.sections && newValue.sections.length >= 7) {
-                                // 等待CHAPTER7内容完全渲染
                                 setTimeout(() => {
                                     renderChapter7Totem();
                                 }, 1000);
@@ -709,10 +690,9 @@
                     }
                 }, { immediate: true });
                 
-                // 监听章节内容变化，尝试渲染CHAPTER7图腾
+                // 监听章节内容变化，再次确保CHAPTER7图腾渲染
                 watch(() => reportData.value?.sections, (newSections) => {
                     if (newSections && newSections.length >= 7) {
-                        // 等待DOM完全渲染后尝试渲染CHAPTER7图腾
                         setTimeout(() => {
                             renderChapter7Totem();
                         }, 1500);
