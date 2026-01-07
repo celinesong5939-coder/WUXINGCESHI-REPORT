@@ -14,38 +14,54 @@
         :root { --c-bg: #020617; }
         body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
         
-        /* 3D小行星核心样式 - 视觉优化版 */
+        /* 3D容器 */
         .totem-container-3d { position: relative; width: 360px; height: 360px; margin: 0 auto; perspective: 1000px; }
         .totem-3d-wrapper { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; }
         
-        /* 核心星球：优化了光影，去除了导致看起来像"灰色死球"的过重阴影 */
+        /* 核心星球 - 关键修改：移除导致中间发灰的黑色阴影 */
         .planet-core {
             position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; border-radius: 50%;
             transform: translate(-50%, -50%);
-            /* 这里调整了渐变，让阴影更通透，不再是黑灰色的 */
-            background: radial-gradient(circle at 35% 35%, 
-                rgba(255,255,255,0.95) 0%, 
-                currentColor 45%, 
-                rgba(0,0,0,0.6) 100%);
+            /* 修改点1：高光范围扩大，黑色阴影推到150%以外，确保中心绝对不黑 */
+            background: radial-gradient(circle at 30% 30%, 
+                rgba(255,255,255,1) 0%, 
+                currentColor 40%, 
+                rgba(0,0,0,0.2) 150%);
+            /* 修改点2：增加同色系光晕，覆盖任何可能的灰色边缘 */
             box-shadow: 
-                0 0 60px currentColor, 
-                0 0 90px rgba(255,255,255,0.1) inset, 
-                -10px -10px 30px rgba(0,0,0,0.5) inset;
-            z-index: 20; animation: planet-rotate 25s linear infinite;
+                0 0 60px currentColor,
+                0 0 30px rgba(255,255,255,0.4) inset;
+            z-index: 20; 
+            animation: planet-rotate 25s linear infinite;
         }
         
-        /* 大气层：调高了亮度，避免"金"属性看起来像灰色烟雾 */
+        /* 汉字样式 - 关键修改：强制纯白 + 强力发光 */
+        .element-char {
+            font-size: 4.5rem; /*稍微加大*/
+            font-weight: 900;
+            color: #ffffff !important; /* 强制纯白 */
+            /* 强力白色光晕，把背景的杂色“烧”掉 */
+            text-shadow: 
+                0 0 10px rgba(255,255,255,1),
+                0 0 20px rgba(255,255,255,0.8),
+                0 0 40px currentColor;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30;
+            pointer-events: none;
+        }
+
+        /* 大气层 */
         .planet-atmosphere {
             position: absolute; top: 50%; left: 50%; width: 240px; height: 240px; border-radius: 50%;
             transform: translate(-50%, -50%);
             background: radial-gradient(circle, rgba(255,255,255,0) 40%, currentColor 85%);
-            opacity: 0.5; filter: blur(35px); z-index: 10; animation: atmosphere-pulse 4s ease-in-out infinite;
-            mix-blend-mode: screen; /* 让光晕更亮 */
+            opacity: 0.6; filter: blur(35px); z-index: 10; animation: atmosphere-pulse 4s ease-in-out infinite;
+            mix-blend-mode: screen; 
         }
         
         .planet-orbits { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; height: 320px; z-index: 5; }
         
-        .orbit-ring { position: absolute; top: 50%; left: 50%; border: 1px solid; border-radius: 50%; opacity: 0.4; }
+        /* 轨道环 - 稍微调亮透明度 */
+        .orbit-ring { position: absolute; top: 50%; left: 50%; border: 1px solid; border-radius: 50%; opacity: 0.5; }
         .orbit-ring-1 { width: 320px; height: 320px; border-color: currentColor; transform: translate(-50%, -50%) rotateX(60deg); animation: orbit-rotate-1 30s linear infinite; }
         .orbit-ring-2 { width: 280px; height: 280px; border-color: currentColor; transform: translate(-50%, -50%) rotateX(45deg) rotateY(30deg); animation: orbit-rotate-2 25s linear infinite reverse; }
         
@@ -58,24 +74,15 @@
         
         .wandering-orbit-path {
             position: absolute; top: 50%; left: 50%; width: 200px; height: 200px;
-            border: 1px dashed rgba(255,255,255,0.15); border-radius: 50%;
+            border: 1px dashed rgba(255,255,255,0.2); border-radius: 50%;
             transform: translate(-50%, -50%) rotateX(70deg); z-index: 15;
         }
         
         .totem-metadata { position: absolute; bottom: -40px; left: 0; width: 100%; text-align: center; z-index: 40; }
         
-        /* 汉字样式优化：确保它是白色的，不会变灰 */
-        .element-char {
-            font-size: 4rem; font-weight: 900;
-            color: #ffffff; /* 强制白色核心文字 */
-            text-shadow: 0 0 20px currentColor, 0 5px 10px rgba(0,0,0,0.5);
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 25;
-            pointer-events: none;
-        }
-        
         /* 动画关键帧 */
         @keyframes planet-rotate { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
-        @keyframes atmosphere-pulse { 0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.05); } }
+        @keyframes atmosphere-pulse { 0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.05); } }
         @keyframes orbit-rotate-1 { 0% { transform: translate(-50%, -50%) rotateX(60deg) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotateX(60deg) rotate(360deg); } }
         @keyframes orbit-rotate-2 { 0% { transform: translate(-50%, -50%) rotateX(45deg) rotateY(30deg) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotateX(45deg) rotateY(30deg) rotate(360deg); } }
         @keyframes wandering-orbit-1 { 0% { transform: translate(-50%, -50%) rotate(0deg) translateX(160px) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg) translateX(160px) rotate(-360deg); } }
@@ -157,21 +164,20 @@
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
-        // 核心渲染引擎：汉字回归版 + 颜色优化
+        // 核心渲染引擎：去灰最终版
         function render3DTotem(totemData, containerId = 'header-totem', size = 'large') {
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            // 1. 定义完整字典（注意：金属性改为亮银色 #e2e8f0，避免看起来像灰色Bug）
+            // 1. 定义字典 - 关键：将 Metal (金) 改为纯白银色，防止发灰
             const DICT = {
-                metal: { color_hex: '#e2e8f0', char: '金', name: '金', glow: 'rgba(226,232,240,0.8)' },
+                metal: { color_hex: '#f8fafc', char: '金', name: '金', glow: 'rgba(248,250,252,0.9)' },
                 wood:  { color_hex: '#10b981', char: '木', name: '木', glow: 'rgba(16,185,129,0.7)' },
                 water: { color_hex: '#3b82f6', char: '水', name: '水', glow: 'rgba(59,130,246,0.7)' },
                 fire:  { color_hex: '#ef4444', char: '火', name: '火', glow: 'rgba(239,68,68,0.7)' },
                 earth: { color_hex: '#f59e0b', char: '土', name: '土', glow: 'rgba(245,158,11,0.7)' }
             };
 
-            // 2. 强力清洗数据函数
             function safeParse(input, defaultKey) {
                 if (!input) return DICT[defaultKey];
                 if (typeof input === 'string') {
@@ -179,12 +185,11 @@
                     return DICT[key] || DICT[defaultKey];
                 }
                 if (typeof input === 'object') {
-                    // 如果传入的是对象，我们优先信任它的属性，但如果它缺了char，我们去字典补
                     const key = input.element || defaultKey;
                     const dictItem = DICT[key] || DICT[defaultKey];
                     return {
                         color_hex: input.color_hex || dictItem.color_hex,
-                        char: dictItem.char, // 强制使用字典里的汉字，防止emoji乱入
+                        char: dictItem.char, 
                         name: input.name || dictItem.name,
                         glow: input.glow_color || dictItem.glow
                     };
@@ -192,18 +197,15 @@
                 return DICT[defaultKey];
             }
 
-            // 3. 标准化所有数据
             const main = safeParse(totemData.main, 'metal');
             const second = safeParse(totemData.second, 'wood');
             const wandering = safeParse(totemData.wandering, 'water');
-            const balanced = { color_hex: '#cbd5e1' }; 
+            const balanced = { color_hex: '#e2e8f0' }; 
 
-            // 4. 生成样式参数
             const s = size === 'large' ? 
-                { c: '360px', p: '160px', a: '240px', o: '320px', io: '280px', wo: '200px', fs: '4rem' } :
-                { c: '280px', p: '120px', a: '180px', o: '240px', io: '200px', wo: '140px', fs: '3rem' };
+                { c: '360px', p: '160px', a: '240px', o: '320px', io: '280px', wo: '200px', fs: '4.5rem' } :
+                { c: '280px', p: '120px', a: '180px', o: '240px', io: '200px', wo: '140px', fs: '3.5rem' };
 
-            // 5. 生成 HTML
             function stars() {
                 let h = '';
                 for(let i=0; i<30; i++) h+=`<div class="star" style="left:${Math.random()*100}%;top:${Math.random()*100}%;width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;animation-delay:${Math.random()*3}s"></div>`;
@@ -236,7 +238,6 @@
             if (containerId === 'chapter7-totem-container') container.classList.add('chapter7-totem-container');
         }
 
-        // C7 渲染器
         function renderC7() {
             const el = document.getElementById('chapter7-totem-container');
             if (!el) { setTimeout(renderC7, 500); return; }
