@@ -18,16 +18,15 @@
         .totem-container-3d { position: relative; width: 360px; height: 360px; margin: 0 auto; perspective: 1000px; }
         .totem-3d-wrapper { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; }
         
-        /* 核心星球 - 关键修改：移除导致中间发灰的黑色阴影 */
+        /* 核心星球 */
         .planet-core {
             position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; border-radius: 50%;
             transform: translate(-50%, -50%);
-            /* 修改点1：高光范围扩大，黑色阴影推到150%以外，确保中心绝对不黑 */
+            /* 保持高亮中心，确保通透感 */
             background: radial-gradient(circle at 30% 30%, 
                 rgba(255,255,255,1) 0%, 
                 currentColor 40%, 
                 rgba(0,0,0,0.2) 150%);
-            /* 修改点2：增加同色系光晕，覆盖任何可能的灰色边缘 */
             box-shadow: 
                 0 0 60px currentColor,
                 0 0 30px rgba(255,255,255,0.4) inset;
@@ -35,16 +34,28 @@
             animation: planet-rotate 25s linear infinite;
         }
         
-        /* 汉字样式 - 关键修改：强制纯白 + 强力发光 */
+        /* ========================================= */
+        /* 核心修改：奢华流金字体样式 (High-End Text) */
+        /* ========================================= */
         .element-char {
-            font-size: 4.5rem; /*稍微加大*/
+            font-size: 4.5rem;
             font-weight: 900;
-            color: #ffffff !important; /* 强制纯白 */
-            /* 强力白色光晕，把背景的杂色“烧”掉 */
-            text-shadow: 
-                0 0 10px rgba(255,255,255,1),
-                0 0 20px rgba(255,255,255,0.8),
-                0 0 40px currentColor;
+            font-family: 'Noto Serif SC', serif; /* 强制使用衬线体增加高级感 */
+            
+            /* 制作流金渐变效果 (Champagne Gold Gradient) */
+            background: linear-gradient(180deg, 
+                #FFFBEB 0%,   /* 顶部：亮白金 */
+                #FCD34D 40%,  /* 中部：黄金 */
+                #B45309 100%  /* 底部：暗铜金 */
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            
+            /* 关键：强力投影 (Drop Shadow) */
+            /* 这层黑色的影子能确保金色字体在白色星球上也能清晰浮现 */
+            filter: drop-shadow(0 2px 0px rgba(0,0,0,0.5)) drop-shadow(0 5px 10px rgba(0,0,0,0.6));
+            
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30;
             pointer-events: none;
         }
@@ -60,7 +71,7 @@
         
         .planet-orbits { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; height: 320px; z-index: 5; }
         
-        /* 轨道环 - 稍微调亮透明度 */
+        /* 轨道环 */
         .orbit-ring { position: absolute; top: 50%; left: 50%; border: 1px solid; border-radius: 50%; opacity: 0.5; }
         .orbit-ring-1 { width: 320px; height: 320px; border-color: currentColor; transform: translate(-50%, -50%) rotateX(60deg); animation: orbit-rotate-1 30s linear infinite; }
         .orbit-ring-2 { width: 280px; height: 280px; border-color: currentColor; transform: translate(-50%, -50%) rotateX(45deg) rotateY(30deg); animation: orbit-rotate-2 25s linear infinite reverse; }
@@ -164,12 +175,12 @@
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
-        // 核心渲染引擎：去灰最终版
+        // 核心渲染引擎
         function render3DTotem(totemData, containerId = 'header-totem', size = 'large') {
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            // 1. 定义字典 - 关键：将 Metal (金) 改为纯白银色，防止发灰
+            // 1. 定义字典 - 金属性改为银白色，字体为金色渐变
             const DICT = {
                 metal: { color_hex: '#f8fafc', char: '金', name: '金', glow: 'rgba(248,250,252,0.9)' },
                 wood:  { color_hex: '#10b981', char: '木', name: '木', glow: 'rgba(16,185,129,0.7)' },
