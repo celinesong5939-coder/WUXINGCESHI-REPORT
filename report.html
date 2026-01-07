@@ -18,44 +18,35 @@
         .totem-container-3d { position: relative; width: 360px; height: 360px; margin: 0 auto; perspective: 1000px; }
         .totem-3d-wrapper { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; }
         
-        /* 核心星球 */
+        /* 核心星球 - 视觉优化版（去除灰色阴影，增加通透感） */
         .planet-core {
             position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; border-radius: 50%;
             transform: translate(-50%, -50%);
-            /* 保持高亮中心，确保通透感 */
+            /* 高光中心，边缘透明，彻底消除黑心 */
             background: radial-gradient(circle at 30% 30%, 
                 rgba(255,255,255,1) 0%, 
-                currentColor 40%, 
-                rgba(0,0,0,0.2) 150%);
+                currentColor 45%, 
+                rgba(0,0,0,0.1) 150%);
+            /* 增加同色光晕 */
             box-shadow: 
                 0 0 60px currentColor,
-                0 0 30px rgba(255,255,255,0.4) inset;
+                0 0 40px rgba(255,255,255,0.3) inset;
             z-index: 20; 
             animation: planet-rotate 25s linear infinite;
         }
         
-        /* ========================================= */
-        /* 核心修改：奢华流金字体样式 (High-End Text) */
-        /* ========================================= */
+        /* 奢华流金字体样式 (黑金流光 + 强力投影) */
         .element-char {
             font-size: 4.5rem;
             font-weight: 900;
-            font-family: 'Noto Serif SC', serif; /* 强制使用衬线体增加高级感 */
-            
-            /* 制作流金渐变效果 (Champagne Gold Gradient) */
-            background: linear-gradient(180deg, 
-                #FFFBEB 0%,   /* 顶部：亮白金 */
-                #FCD34D 40%,  /* 中部：黄金 */
-                #B45309 100%  /* 底部：暗铜金 */
-            );
+            font-family: 'Noto Serif SC', serif;
+            /* 流金渐变色 */
+            background: linear-gradient(180deg, #FFFBEB 0%, #FCD34D 40%, #B45309 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            
-            /* 关键：强力投影 (Drop Shadow) */
-            /* 这层黑色的影子能确保金色字体在白色星球上也能清晰浮现 */
-            filter: drop-shadow(0 2px 0px rgba(0,0,0,0.5)) drop-shadow(0 5px 10px rgba(0,0,0,0.6));
-            
+            /* 强力投影，确保在白色背景上也清晰可见 */
+            filter: drop-shadow(0 2px 0px rgba(0,0,0,0.5)) drop-shadow(0 5px 15px rgba(0,0,0,0.8));
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30;
             pointer-events: none;
         }
@@ -126,18 +117,22 @@
 </head>
 <body>
     <div id="report-app">
+        <!-- 状态一：加载中 -->
         <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
             <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 正在从云端解密档案...
         </div>
 
+        <!-- 状态二：错误 -->
         <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-4">
             <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-6"></i>
             <h2 class="text-2xl font-bold mb-2 text-white">报告加载失败</h2>
             <p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
         </div>
 
+        <!-- 状态三：内容展示 -->
         <template v-else-if="reportData">
-            <div class="save-btn" @click="saveAsImage" title="保存为图片"><i class="fa-solid fa-camera"></i></div>
+            <!-- 截图提示按钮 -->
+            <div class="save-btn" @click="showSaveTip" title="保存档案"><i class="fa-solid fa-camera"></i></div>
             
             <div class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
                 <header class="text-center mb-16 fade-in-up">
@@ -180,7 +175,7 @@
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            // 1. 定义字典 - 金属性改为银白色，字体为金色渐变
+            // 1. 定义字典 - 金改为银白(#f8fafc)防止发灰
             const DICT = {
                 metal: { color_hex: '#f8fafc', char: '金', name: '金', glow: 'rgba(248,250,252,0.9)' },
                 wood:  { color_hex: '#10b981', char: '木', name: '木', glow: 'rgba(16,185,129,0.7)' },
@@ -271,15 +266,45 @@
 
                 onMounted(async () => {
                     const params = new URLSearchParams(window.location.search);
+                    // 假设 URL 里有 ?k=XXXXXX 或 ?key=XXXXXX
+                    const userKey = params.get('k') || params.get('key');
+                    const CACHE_KEY = `archetype_cache_${userKey}`;
+                    
+                    // === 1. 优先读取本地缓存 (防刷新) ===
+                    if (userKey) {
+                        const cached = localStorage.getItem(CACHE_KEY);
+                        if (cached) {
+                            try {
+                                console.log("🔥 读取本地缓存，跳过API请求");
+                                const parsed = JSON.parse(cached);
+                                reportData.value = parsed;
+                                isLoading.value = false;
+                                return; // 直接结束，不请求后端
+                            } catch (e) {
+                                localStorage.removeItem(CACHE_KEY);
+                            }
+                        }
+                    }
+
+                    // === 2. 无缓存则请求 API ===
                     try {
                         const res = await fetch(`${REPORT_FUNCTION_URL}?${params.toString()}`, {
                             headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
                         });
                         const data = await res.json();
-                        if (!res.ok) throw new Error(data.message || 'Error');
                         
+                        if (!res.ok) throw new Error(data.message || '报告生成失败');
+                        
+                        // 处理数据层级
                         const core = data.attributes || data.meta || data;
-                        reportData.value = { ...data, ...core, sections: data.sections || core.sections };
+                        const finalData = { ...data, ...core, sections: data.sections || core.sections };
+                        
+                        reportData.value = finalData;
+                        
+                        // === 3. 存入缓存 ===
+                        if (userKey) {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
+                        }
                         
                     } catch (e) {
                         fetchError.value = e.message;
@@ -288,6 +313,7 @@
                     }
                 });
 
+                // 监听数据渲染图腾
                 watch(() => reportData.value, (val) => {
                     if (val) {
                         nextTick(() => {
@@ -302,11 +328,17 @@
                     }
                 });
 
+                // 双重保险渲染 C7
                 watch(() => reportData.value?.sections, (secs) => {
                     if (secs?.length >= 5) setTimeout(renderC7, 1500);
                 });
 
-                return { isLoading, fetchError, reportData, saveAsImage: () => alert('请使用浏览器截图') };
+                // 截图提示函数
+                const showSaveTip = () => {
+                    alert("📷 保存方式：\n请直接使用手机【截屏】功能，或长按页面保存。\n这样能获得最高清的灵魂图腾哦！");
+                };
+
+                return { isLoading, fetchError, reportData, showSaveTip };
             }
         }).mount('#report-app');
     </script>
