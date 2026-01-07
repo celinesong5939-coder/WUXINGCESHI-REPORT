@@ -365,39 +365,124 @@
                     sphereState.value = 'start'; 
                 }
             };
-            const handleSphereClick = () => { if (phase.value === 'start') enterSystem(); };
-            const calculateResult = () => {
-                phase.value = 'calculating';
-                sphereState.value = 'calc';
-                setTimeout(() => {
-                    const scores = { metal: 0, wood: 0, water: 0, fire: 0, earth: 0 };
-                    answers.value.forEach(a => scores[a]++);
-                    const sortedHigh = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-                    const mainKey = sortedHigh[0][0];
-                    const secondKey = sortedHigh[1] ? sortedHigh[1][0] : (mainKey === 'water' ? 'wood' : 'water');
-                    const wanderKey = sortedHigh[2] ? sortedHigh[2][0] : (secondKey === 'fire' ? 'earth' : 'fire');
-                    const sortedLow = Object.entries(scores).sort((a, b) => a[1] - b[1]);
-                    const missingKey = sortedLow[0][0];
-                    const comboName = ADJECTIVES[secondKey] + NOUNS[mainKey] + SUFFIXES[wanderKey];
-                    resultData.value = {
-                        main: ATTRIBUTES[mainKey],
-                        second: ATTRIBUTES[secondKey],
-                        wandering: ATTRIBUTES[wanderKey],
-                        missing: ATTRIBUTES[missingKey],
-                        missingKey: missingKey,
-                        comboName: comboName
-                    };
-                    generatedHookText.value = generateHookText(resultData.value, gender.value);
-                    scarcity.value = (Math.random() * (18.7 - 4.2) + 4.2).toFixed(1);
-                    phase.value = 'result';
-                    setTimeout(() => { playAnimation.value = true; }, 100);
-                }, 2500);
+const calculateResult = () => {
+    phase.value = 'calculating');
+    sphereState.value = 'calc';
+    
+    setTimeout(() => {
+        // 1. 计算各属性得分
+        const scores = { metal: 0, wood: 0, water: 0, fire: 0, earth: 0 };
+        answers.value.forEach(a => scores[a]++);
+        
+        // 2. 按得分排序
+        const sortedEntries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+        
+        let mainKey = sortedEntries[0][0];
+        let secondKey = sortedEntries[1] ? sortedEntries[1][0] : (mainKey === 'water' ? 'wood' : 'water');
+        const mainScore = sortedEntries[0][1];
+        const secondScore = sortedEntries[1] ? sortedEntries[1][1] : 0;
+        
+        // 3. ★★★ 核心新增：当主副得分相同时，应用五行生克判定 ★★★
+        let elementDecisionNote = null; // 简化为只记录是否触发
+        
+        if (mainScore === secondScore && mainKey !== secondKey) {
+            console.log(`五行生克判定触发：主${mainKey}(${mainScore}) = 副${secondKey}(${secondScore})`);
+            
+            // 五行生克关系定义
+            const generateCycle = { // 生：母->子
+                wood: 'fire',   // 木生火
+                fire: 'earth',  // 火生土
+                earth: 'metal', // 土生金
+                metal: 'water', // 金生水
+                water: 'wood'   // 水生木
             };
-            const generateHookText = (data, g) => {
-                const m = data.main; const s = data.second; const w = data.wandering; const l = data.missing;
-                // 使用多行模板字符串，防止单行过长导致编辑器解析错误
-                return `<span class="text-amber-500 font-bold">命格定性：</span> 你的命运图谱显示了一种极其罕见的<span class="font-bold text-white">【${data.comboName}】</span>架构。 <br><br> <span class="font-bold text-white">骨相（OS）：</span> 你的底层逻辑由<span style="color:${m.color}">${m.char}</span>构建。这意味着你天生具有<span class="text-white">${m.nature}</span>的特质。在潜意识深处，你并不是在寻求安慰，而是在寻求一种绝对的秩序。这种能量构成了你人格的“硬度”。 <br><br> <span class="font-bold text-white">皮相（Mask）：</span> 然而，为了适应社会，你衍生出了<span style="color:${s.color}">${s.char}</span>作为你的人格面具。这赋予了你必要的社交手段，让你在外人眼中看起来${s.nature.split('、')[0]}。这是一种高明的伪装，保护了你核心的脆弱。 <br><br> <span class="font-bold text-white">致命短板（The Lack）：</span> 当前命盘中最危险的信号，是你能量循环中<span class="text-red-500 font-bold">【缺${l.char}】</span>。这不仅仅是一个性格缺陷，它构成了你人生中反复出现的“诅咒”——你的${l.danger}往往会导致你在关键时刻功亏一篑。 <br><br> <span class="font-bold text-white">破局关键（Key）：</span> 你真正的爆发点隐藏在游离态的<span style="color:${w.color}">${w.char}</span>之中。如果不激活这股力量，你将永远被困在当前的阶层；一旦解锁，这将是你通往下一阶段的唯一钥匙...`;
+            
+            const controlCycle = { // 克：控制者->被控制者
+                wood: 'earth',  // 木克土
+                earth: 'water', // 土克水
+                water: 'fire',  // 水克火
+                fire: 'metal',  // 火克金
+                metal: 'wood'   // 金克木
             };
+            
+            // 判定逻辑
+            if (generateCycle[mainKey] === secondKey) {
+                // mainKey生secondKey -> mainKey是母，保持mainKey为主
+                elementDecisionNote = `${ATTRIBUTES[mainKey].char}生${ATTRIBUTES[secondKey].char}`;
+                console.log(`判定：${mainKey}生${secondKey}，保持${mainKey}为主`);
+            } else if (generateCycle[secondKey] === mainKey) {
+                // secondKey生mainKey -> secondKey是母，交换主副
+                elementDecisionNote = `${ATTRIBUTES[secondKey].char}生${ATTRIBUTES[mainKey].char}`;
+                console.log(`判定：${secondKey}生${mainKey}，${secondKey}成为主`);
+                [mainKey, secondKey] = [secondKey, mainKey];
+            } else if (controlCycle[mainKey] === secondKey) {
+                // mainKey克secondKey -> mainKey是控制者，保持mainKey为主
+                elementDecisionNote = `${ATTRIBUTES[mainKey].char}克${ATTRIBUTES[secondKey].char}`;
+                console.log(`判定：${mainKey}克${secondKey}，保持${mainKey}为主`);
+            } else if (controlCycle[secondKey] === mainKey) {
+                // secondKey克mainKey -> secondKey是控制者，交换主副
+                elementDecisionNote = `${ATTRIBUTES[secondKey].char}克${ATTRIBUTES[mainKey].char}`;
+                console.log(`判定：${secondKey}克${mainKey}，${secondKey}成为主`);
+                [mainKey, secondKey] = [secondKey, mainKey];
+            }
+        }
+        
+        // 4. 确定游荡属性（第三高）
+        const wanderKey = sortedEntries[2] ? sortedEntries[2][0] : 
+                         (secondKey === 'fire' ? 'earth' : 'fire');
+        
+        // 5. 确定缺失属性（最低分）
+        const sortedLow = Object.entries(scores).sort((a, b) => a[1] - b[1]);
+        const missingKey = sortedLow[0][0];
+        
+        // 6. 生成组合名称
+        const comboName = ADJECTIVES[secondKey] + NOUNS[mainKey] + SUFFIXES[wanderKey];
+        
+        // 7. 设置结果数据
+        resultData.value = {
+            main: ATTRIBUTES[mainKey],
+            second: ATTRIBUTES[secondKey],
+            wandering: ATTRIBUTES[wanderKey],
+            missing: ATTRIBUTES[missingKey],
+            missingKey: missingKey,
+            comboName: comboName,
+            elementDecisionNote: elementDecisionNote // 简化为只存储关系字符串
+        };
+        
+        // 8. 生成描述文本和稀有度
+        generatedHookText.value = generateHookText(resultData.value, gender.value);
+        scarcity.value = (Math.random() * (18.7 - 4.2) + 4.2).toFixed(1);
+        
+        // 9. 切换到结果页面并播放动画
+        phase.value = 'result';
+        setTimeout(() => { playAnimation.value = true; }, 100);
+        
+    }, 2500);
+};
+
+// 更新generateHookText函数，包含五行生克判定解释
+const generateHookText = (data, g) => {
+    const m = data.main; 
+    const s = data.second; 
+    const w = data.wandering; 
+    const l = data.missing;
+    
+    // 基础文本
+    let hookText = `<span class="text-amber-500 font-bold">命格定性：</span> 你的命运图谱显示了一种极其罕见的<span class="font-bold text-white">【${data.comboName}】</span>架构。`;
+    
+    // ★★★ 新增：简短的五行生克判定解释 ★★★
+    if (data.elementDecisionNote) {
+        hookText += `<br><br><span class="text-amber-500 font-bold">【五行生克判定】</span> 根据五行生克逻辑（${data.elementDecisionNote}），你的主属性判定为<span style="color:${m.color}">${m.char}</span>，副属性为<span style="color:${s.color}">${s.char}</span>。`;
+    }
+    
+    // 继续原有文本
+    hookText += `<br><br><span class="font-bold text-white">骨相（OS）：</span> 你的底层逻辑由<span style="color:${m.color}">${m.char}</span>构建。这意味着你天生具有<span class="text-white">${m.nature}</span>的特质。在潜意识深处，你并不是在寻求安慰，而是在寻求一种绝对的秩序。这种能量构成了你人格的"硬度"。`;
+    hookText += `<br><br><span class="font-bold text-white">皮相（Mask）：</span> 然而，为了适应社会，你衍生出了<span style="color:${s.color}">${s.char}</span>作为你的人格面具。这赋予了你必要的社交手段，让你在外人眼中看起来${s.nature.split('、')[0]}。这是一种高明的伪装，保护了你核心的脆弱。`;
+    hookText += `<br><br><span class="font-bold text-white">致命短板（The Lack）：</span> 当前命盘中最危险的信号，是你能量循环中<span class="text-red-500 font-bold">【缺${l.char}】</span>。这不仅仅是一个性格缺陷，它构成了你人生中反复出现的"诅咒"——你的${l.danger}往往会导致你在关键时刻功亏一篑。`;
+    hookText += `<br><br><span class="font-bold text-white">破局关键（Key）：</span> 你真正的爆发点隐藏在游离态的<span style="color:${w.color}">${w.char}</span>之中。如果不激活这股力量，你将永远被困在当前的阶层；一旦解锁，这将是你通往下一阶段的唯一钥匙...`;
+    
+    return hookText;
+};
             const getAttributeKey = (attrObj) => {
                 if (!attrObj || !attrObj.char) return 'metal';
                 if (attrObj.char === '金') return 'metal'; if (attrObj.char === '木') return 'wood';
@@ -473,4 +558,5 @@
 </script>
 </body>
 </html>
+
 
