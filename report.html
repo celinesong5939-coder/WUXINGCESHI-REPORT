@@ -337,11 +337,9 @@
         const { createApp, ref, onMounted, watch, nextTick } = Vue;
 
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
-        
-        // 已填入你的 Key
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
 
-        // 3D小行星图腾渲染函数 (保持不变，因为效果很好)
+        // 3D小行星图腾渲染函数 - 已修复字符串解析问题
         function render3DTotem(totemData, containerId = 'header-totem', size = 'large') {
             const container = document.getElementById(containerId);
             if (!container || !totemData) return;
@@ -393,55 +391,40 @@
                 earth: '土'
             };
             
-            // 确保有默认值
-            const main = totemData.main || { 
-                element: 'metal',
-                name: '金',
-                char: '⚪',
-                color_hex: '#94a3b8'
-            };
+            // 辅助函数：将输入（可能是字符串'fire'或对象）标准化为完整对象
+            function normalizeElement(input, defaultKey) {
+                if (!input) return { 
+                    element: defaultKey, 
+                    color_hex: colorMap[defaultKey].color_hex,
+                    char: charMap[defaultKey],
+                    name: nameMap[defaultKey]
+                };
+                
+                // 关键修复：如果输入是字符串（如'fire'），查找字典并构造对象
+                if (typeof input === 'string') {
+                    const key = input.toLowerCase();
+                    return {
+                        element: key,
+                        color_hex: colorMap[key]?.color_hex || '#94a3b8',
+                        char: charMap[key] || '⚪',
+                        name: nameMap[key] || '未知'
+                    };
+                }
+                
+                // 如果已经是对象，直接返回
+                return input;
+            }
             
-            const second = totemData.second || { 
-                element: 'wood',
-                name: '木',
-                char: '🟢',
-                color_hex: '#10b981'
-            };
-            
-            const wandering = totemData.wandering || { 
-                element: 'water',
-                name: '水',
-                char: '🔵',
-                color_hex: '#3b82f6'
-            };
+            // 标准化所有输入数据
+            const main = normalizeElement(totemData.main, 'metal');
+            const second = normalizeElement(totemData.second, 'wood');
+            const wandering = normalizeElement(totemData.wandering, 'water');
             
             const balanced = totemData.balanced || { 
                 name: '均衡',
                 char: '⚖',
                 color_hex: '#94a3b8'
             };
-            
-            // 如果传入的是字符串元素，转换为对象
-            if (typeof main === 'string') {
-                main.element = main;
-                main.color_hex = colorMap[main]?.color_hex || '#94a3b8';
-                main.char = charMap[main] || '⚪';
-                main.name = nameMap[main] || '金';
-            }
-            
-            if (typeof second === 'string') {
-                second.element = second;
-                second.color_hex = colorMap[second]?.color_hex || '#10b981';
-                second.char = charMap[second] || '🟢';
-                second.name = nameMap[second] || '木';
-            }
-            
-            if (typeof wandering === 'string') {
-                wandering.element = wandering;
-                wandering.color_hex = colorMap[wandering]?.color_hex || '#3b82f6';
-                wandering.char = charMap[wandering] || '🔵';
-                wandering.name = nameMap[wandering] || '水';
-            }
             
             // 生成星空背景
             function generateStars(count) {
@@ -490,7 +473,7 @@
             
             const style = sizes[size] || sizes.large;
             
-            // 构建图腾HTML
+            // 构建图腾HTML - 此时main.color_hex一定有值
             const totemHTML = `
                 <div class="totem-3d-wrapper" style="width: ${style.container}; height: ${style.container};">
                     <!-- 背景星空 -->
@@ -564,35 +547,24 @@
             
             container.innerHTML = totemHTML;
             
-            // 如果是CHAPTER7的容器，添加特殊类
             if (containerId === 'chapter7-totem-container') {
                 container.classList.add('chapter7-totem-container');
             }
         }
 
-        // ===============================================
-        // 修改版：CHAPTER7图腾渲染
-        // 现在直接读取后端传回来的 data-m, data-s, data-w 标签
-        // 不再需要解析复杂的 JSON 或脚本
-        // ===============================================
+        // C7 图腾渲染逻辑
         function renderChapter7Totem() {
-            // 尝试获取后端生成的占位容器
             const container = document.getElementById('chapter7-totem-container');
-            
             if (!container) {
-                // 如果还未生成，稍后再试
                 setTimeout(renderChapter7Totem, 500);
                 return;
             }
 
-            // 读取数据标签 (这是新版后端生成的关键数据)
             const m = container.dataset.m;
             const s = container.dataset.s;
             const w = container.dataset.w;
 
-            // 如果数据存在，开始渲染
             if (m && s && w) {
-                // 构建图腾数据对象
                 const totemData = {
                     main: m,
                     second: s,
@@ -600,21 +572,19 @@
                     balanced: { name: '均衡', char: '⚖', color_hex: '#94a3b8' }
                 };
                 
-                // 调用渲染引擎
+                // 调用修复后的渲染引擎，它会自动处理字符串输入
                 render3DTotem(totemData, 'chapter7-totem-container', 'medium');
                 
-                // 隐藏加载圈
                 const loading = document.getElementById('totem-loading');
                 if (loading) loading.style.display = 'none';
                 
                 console.log('CHAPTER7图腾渲染成功', totemData);
             } else {
-                console.log('CHAPTER7容器已就绪，但等待数据属性注入...');
                 setTimeout(renderChapter7Totem, 500);
             }
         }
 
-        // 初始化Vue应用
+        // Vue App
         createApp({
             setup() {
                 const isLoading = ref(true);
@@ -641,7 +611,6 @@
 
                         console.log("云端原始数据:", rawData);
 
-                        // 处理数据
                         const coreData = rawData.attributes || rawData.meta || rawData;
                         const sectionsData = rawData.sections || coreData.sections || [];
 
@@ -661,18 +630,16 @@
                     }
                 });
                 
-                // 监听报告数据变化，渲染页面顶部图腾
                 watch(() => reportData.value, (newValue) => {
                     if (newValue) {
                         nextTick(() => {
-                            // 优先读取后端直接返回的顶层属性 (m, s, w)
-                            // 这解决了顶部星球显示 undefined 的问题
+                            // 读取后端返回的 m/s/w 属性
                             const mainElement = newValue.m || newValue.main?.element || 'metal';
                             const secondElement = newValue.s || newValue.second?.element || 'wood';
                             const wanderingElement = newValue.w || newValue.wandering?.element || 'water';
                             
                             const totemData = {
-                                main: mainElement,
+                                main: mainElement, // 传递字符串，例如 'fire'
                                 second: secondElement,
                                 wandering: wanderingElement,
                                 balanced: { name: '均衡', char: '⚖', color_hex: '#94a3b8' }
@@ -680,7 +647,6 @@
                             
                             render3DTotem(totemData, 'header-totem', 'large');
                             
-                            // 触发 C7 图腾渲染检查
                             if (newValue.sections && newValue.sections.length >= 7) {
                                 setTimeout(() => {
                                     renderChapter7Totem();
@@ -690,7 +656,6 @@
                     }
                 }, { immediate: true });
                 
-                // 监听章节内容变化，再次确保CHAPTER7图腾渲染
                 watch(() => reportData.value?.sections, (newSections) => {
                     if (newSections && newSections.length >= 7) {
                         setTimeout(() => {
@@ -700,7 +665,7 @@
                 }, { deep: true });
 
                 const saveAsImage = () => {
-                    alert("截图功能需部署在服务器环境使用 (html2canvas跨域限制)。\n当前环境请直接使用浏览器截图。");
+                    alert("截图功能需部署在服务器环境使用。");
                 };
 
                 return { 
