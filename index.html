@@ -12,9 +12,9 @@
     <!-- 2. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- 3. ★★★ 修复核心：Vue 3 国内高速源 ★★★ -->
-    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/vue/3.2.47/vue.global.min.js"></script>
-
+    <!-- 3. ★★★ 修复核心：使用多重备份的Vue 3 CDN ★★★ -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.js" id="vue-main"></script>
+    
     <style>
         :root { --c-bg: #020617; --c-gold: #d97706; }
         * { font-family: 'Noto Serif SC', serif; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -108,11 +108,27 @@
         .stat-bar { display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px; }
         .stat-line-bg { width: 100px; height: 4px; background: #334155; border-radius: 2px; overflow: hidden; }
         .stat-line-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+        
+        /* 加载错误样式 */
+        .error-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #020617;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
-
-    <div id="app" class="w-full h-screen flex flex-col items-center relative overflow-y-auto">
+    <!-- Vue应用容器 -->
+    <div id="app" class="w-full h-screen flex flex-col items-center relative overflow-y-auto" style="display: none;">
         <!-- 全局常驻：粒子球 -->
         <div class="sphere-container" :class="sphereStateClass" @click="handleSphereClick">
             <div class="particle-sphere">
@@ -234,8 +250,8 @@
                         <!-- 背景模糊文字 -->
                         <div class="paywall-blur space-y-4 text-slate-600 text-sm text-justify px-2">
                             <p class="font-bold">【深度溯源】你的原生家庭是如何重塑你的五行架构的？</p>
-                            <p>【阴影解析】在荣格心理学视角下，你潜意识里的“阴影人格”正在如何吞噬你的机会...</p>
-                            <p>【补全处方】针对你“缺{{resultData.missing.char}}”的命格，未来三年必须执行的三个战术动作是...</p>
+                            <p>【阴影解析】在荣格心理学视角下，你潜意识里的"阴影人格"正在如何吞噬你的机会...</p>
+                            <p>【补全处方】针对你"缺{{resultData.missing.char}}"的命格，未来三年必须执行的三个战术动作是...</p>
                             <div class="h-8 bg-slate-800/50 rounded w-full"></div>
                         </div>
 
@@ -260,274 +276,346 @@
         </transition>
     </div>
 
-<script>
-    // 定义常量和辅助函数
-    const ATTRIBUTES = {
-        metal: { color: '#cbd5e1', char: '金', icon: 'fa-solid fa-mountain', nature: '冷峻、秩序', danger: '过刚则折' },
-        wood: { color: '#10b981', char: '木', icon: 'fa-solid fa-tree', nature: '仁慈、生长', danger: '优柔寡断' },
-        water: { color: '#3b82f6', char: '水', icon: 'fa-solid fa-water', nature: '深邃、流动', danger: '心思过重' },
-        fire: { color: '#ef4444', char: '火', icon: 'fa-solid fa-fire', nature: '炽热、爆发', danger: '三分钟热度' },
-        earth: { color: '#d97706', char: '土', icon: 'fa-solid fa-cubes', nature: '厚重、承载', danger: '固步自封' }
-    };
-    const ADJECTIVES = { metal: '冷峻', wood: '仁慈', water: '深邃', fire: '炽热', earth: '厚重' };
-    const NOUNS = { metal: '金', wood: '木', water: '水', fire: '火', earth: '土' };
-    const SUFFIXES = { metal: '· 藏锋', wood: '· 归根', water: '· 潜渊', fire: '· 燃魂', earth: '· 镇岳' };
-    
-    // 题目数据
-    const RAW_QUESTIONS = [
-        { text: "在全是陌生人的高端社交晚宴上，哪种状态最让你感到自在？", options: [{ text: "静静观察局势，只在必要时与关键人物进行高效沟通。", value: "metal" }, { text: "做一个温和的倾听者，如果有人落单，我会主动释放善意。", value: "wood" }, { text: "像水一样流动，在不同圈子间穿梭，不固定在任何位置。", value: "water" }, { text: "成为话题的中心，用幽默或观点吸引大家的注意力。", value: "fire" }, { text: "找到舒适的角落享受美食，保持内心平静，等待他人靠近。", value: "earth" }] },
-        { text: "当朋友遭遇情感背叛，你的第一本能反应是？", options: [{ text: "立刻帮他分析止损方案：有没有经济损失？如何取证？", value: "metal" }, { text: "感同身受地难过，默默陪伴，提供无条件的情感支持。", value: "wood" }, { text: "立刻察觉到其中的猫腻，帮朋友分析对方的心理漏洞。", value: "water" }, { text: "怒火中烧，恨不得冲过去帮朋友出头，宣泄愤怒。", value: "fire" }, { text: "先照顾朋友的身体，递纸巾、做饭，用生活细节治愈。", value: "earth" }] },
-        { text: "在团队协作中，你最难以忍受哪种行为？", options: [{ text: "缺乏时间观念，做事逻辑混乱，效率低下。", value: "metal" }, { text: "冷漠自私，为了利益不惜伤害团队感情。", value: "wood" }, { text: "不知变通，死守教条，导致项目停滞不前。", value: "water" }, { text: "消极怠工，总是泼冷水，缺乏激情和斗志。", value: "fire" }, { text: "光说不练，满嘴空话，最后无法落地执行。", value: "earth" }] },
-        { text: "如果让你掌管一家公司，你最看重的管理哲学是？", options: [{ text: "法治。制度高于一切，赏罚分明，建立绝对的秩序。", value: "metal" }, { text: "德治。以人为本，注重团队成长，打造像家一样的氛围。", value: "wood" }, { text: "智治。灵活应变，顺势而为，在市场波动中寻找最优解。", value: "water" }, { text: "名治。打造品牌光环，让公司成为行业灯塔，吸引顶尖人才。", value: "fire" }, { text: "稳治。现金流第一，步步为营，确保基业长青，拒绝冒进。", value: "earth" }] },
-        { text: "面对一件昂贵但心仪的物品，最终促使你下单的理由是？", options: [{ text: "它的工艺、材质和保值率，经得起理性的推敲。", value: "metal" }, { text: "它背后的故事、理念或匠心，深深打动了我的内心。", value: "wood" }, { text: "它非常稀缺或正当红，如果不喜欢了也容易转手。", value: "water" }, { text: "它能完美衬托我的气质，让我成为人群中的亮点。", value: "fire" }, { text: "它的耐用性和实用性，能陪伴我很久，物尽其用。", value: "earth" }] },
-        { text: "如果获得一笔意外之财，你倾向于如何分配？", options: [{ text: "购买硬通货（如黄金、核心房产），确保资产不缩水。", value: "metal" }, { text: "投资于教育、公益或家人，让财富产生精神价值。", value: "wood" }, { text: "分散配置，留一部分现金流，寻找高回报的商业机会。", value: "water" }, { text: "奖励自己，体验顶级的生活方式，此时不搏何时搏。", value: "fire" }, { text: "存入最稳妥的账户，或者提前还贷，消除后顾之忧。", value: "earth" }] },
-        { text: "当工作陷入绝境，看似无法完成时，你会？", options: [{ text: "果断切割。放弃沉没成本，迅速重组资源，寻找新突破口。", value: "metal" }, { text: "坚韧生长。相信坚持的力量，用诚意打动他人协助。", value: "wood" }, { text: "迂回包抄。不走寻常路，利用规则漏洞或信息差破局。", value: "water" }, { text: "背水一战。巨大的压力反而激发斗志，创造奇迹。", value: "fire" }, { text: "筑牢防线。先保住基本盘，在这个基础上慢慢图谋。", value: "earth" }] },
-        { text: "你潜意识里认为，什么样的状态才算“人生赢家”？", options: [{ text: "掌控权。拥有制定规则的能力，让周围环境井井有条。", value: "metal" }, { text: "影响力。思想被传承，善意被感知，精神世界富足。", value: "wood" }, { text: "自由度。不受任何束缚，拥有随时可以说“不”的权利。", value: "water" }, { text: "荣耀感。活得轰轰烈烈，被万人瞩目，留下传奇。", value: "fire" }, { text: "安全感。现世安稳，家人闲坐，灯火可亲。", value: "earth" }]},
-        { text: "在选择居住环境时，你最在意的核心要素是？", options: [{ text: "地段与圈层。这代表了资源的集中度和未来的增值潜力。", value: "metal" }, { text: "生态与人文。周围要有树木、书店，邻里关系和谐。", value: "wood" }, { text: "便利与流动。交通四通八达，方便我随时去往任何地方。", value: "water" }, { text: "视野与气派。要有大落地窗，能俯瞰城市，彰显格调。", value: "fire" }, { text: "结构与静谧。房子要结实，隔音要好，给我绝对的私密感。", value: "earth" }]},
-        { text: "如果穿越回古代乱世，你觉得哪个角色最能发挥你的天赋？", options: [{ text: "大将军。以严明的纪律统领三军，平定战乱。", value: "metal" }, { text: "隐世神医。悬壶济世，在乱世中保留一份仁心。", value: "wood" }, { text: "幕后谋士。运筹帷幄之中，决胜千里之外。", value: "water" }, { text: "乱世枭雄。振臂一呼，建立新的王朝，成就霸业。", value: "fire" }, { text: "一方豪绅。深筑墙，广积粮，庇护一方百姓。", value: "earth" }]},
-        { text: "遇到极不开心的事情，你通常会怎么排解？", options: [{ text: "通过高强度运动或整理房间，用身体的秩序恢复内心的秩序。", value: "metal" }, { text: "允许自己悲伤，通过阅读、书写或与知己倾诉来疗愈。", value: "wood" }, { text: "转移注意力，去热闹的地方，或者找个新乐子冲淡不快。", value: "water" }, { text: "彻底宣泄，大哭一场、K歌或购物，把负能量释放出去。", value: "fire" }, { text: "用美食慰藉自己，或者睡个昏天黑地，让身体先恢复。", value: "earth" }]},
-        { text: "如果必须选择一种超能力，你最想要的是？", options: [{ text: "法则重写。能够制定世界的运行规则，让一切按逻辑运转。", value: "metal" }, { text: "万物复苏。让荒芜的土地瞬间长出森林，治愈一切创伤。", value: "wood" }, { text: "全知之眼。能看穿所有人的心思和事物的本质，洞察一切。", value: "water" }, { text: "能量掌控。能够操控光与火，拥有毁灭与创造的极致力量。", value: "fire" }, { text: "绝对防御。拥有任何力量都无法摧毁的护盾，守护想守护的。", value: "earth" }]},
-        { text: "当和伴侣发生严重分歧时，你倾向于？", options: [{ text: "冷静陈述事实，用逻辑说服对方，不让情绪干扰判断。", value: "metal" }, { text: "为了不伤害感情，愿意先退一步，寻找双方都能接受的妥协点。", value: "wood" }, { text: "用幽默化解尴尬，或者暂时搁置争议，等时机成熟再解决。", value: "water" }, { text: "情绪激烈地表达立场，因为在乎，所以必须把心里话说出来。", value: "fire" }, { text: "保持沉默，拒绝无意义的争吵，用行动（如做家务）来表达态度。", value: "earth" }]},
-        { text: "你理想中的伴侣最核心的特质是？", options: [{ text: "能力出众。能与我势均力敌，在事业上互相成就。", value: "metal" }, { text: "善良温柔。能理解我的精神世界，提供情绪价值。", value: "wood" }, { text: "有趣灵动。能带给我新鲜感，生活永远不会枯燥。", value: "water" }, { text: "崇拜我。能看到我的闪光点，给我无条件的支持和赞美。", value: "fire" }, { text: "踏实顾家。情绪稳定，能和我一起经营长久的生活。", value: "earth" }]},
-        { text: "你对“承诺”的理解更接近于？", options: [{ text: "契约。一旦签订就必须严格执行，这是底线。", value: "metal" }, { text: "愿景。这是我们共同成长的方向，需要一起努力。", value: "wood" }, { text: "动态。根据当下的情况灵活调整，不必死守教条。", value: "water" }, { text: "誓言。在那个瞬间我是真心的，这就足够了。", value: "fire" }, { text: "责任。这是一种无声的重担，我会用一生去扛。", value: "earth" }]},
-        { text: "你内心最深处的恐惧来源于？", options: [{ text: "失控。无论是生活还是情绪，一旦脱离轨道就让我恐慌。", value: "metal" }, { text: "孤独。害怕与世界断连，害怕没人理解我的内心。", value: "wood" }, { text: "停滞。害怕被困在同一个地方，一眼望到头的人生。", value: "water" }, { text: "平庸。害怕自己变得无足轻重，被人群淹没。", value: "fire" }, { text: "动荡。害怕失去现有的基础，居无定所，朝不保夕。", value: "earth" }]},
-        { text: "为了快速恢复精力，你偏向于？", options: [{ text: "独处冥想。切断外界干扰，通过内观找回内心的秩序。", value: "metal" }, { text: "回归自然。去公园、森林或水边，从大自然中吸取能量。", value: "wood" }, { text: "社交流动。和不同的人聊天，交换信息，让思维活跃起来。", value: "water" }, { text: "尽情玩乐。去游乐场或看场电影，在欢笑和刺激中充电。", value: "fire" }, { text: "深度睡眠。或者吃一顿满足的碳水，让身体彻底放松。", value: "earth" }]},
-        { text: "如果必须化身为一种图腾动物，你选？", options: [{ text: "孤鹰。翱翔高空，视野广阔，精准捕猎，享受孤独。", value: "metal" }, { text: "群象。温和巨兽，拥有强大的记忆力和族群保护欲。", value: "wood" }, { text: "灵狐。机智多变，适应力极强，总能绝处逢生。", value: "water" }, { text: "雄狮。统领草原，威严霸气，也是力量的象征。", value: "fire" }, { text: "玄龟。寿命极长，背负重甲，任凭风浪稳如磐石。", value: "earth" }]},
-        { text: "在绝境求生游戏中，你会选择哪种装备？", options: [{ text: "狙击枪。在远处解决威胁，保持绝对的安全距离。", value: "metal" }, { text: "医疗包。不仅能自救，还能通过救人建立盟友关系。", value: "wood" }, { text: "迷彩服。伪装自己，观察局势，不到最后不暴露。", value: "water" }, { text: "炸药包。拥有同归于尽的威慑力，让人不敢轻易招惹。", value: "fire" }, { text: "防爆盾。无论发生什么，先保证自己不会受伤。", value: "earth" }]},
-        { text: "你觉得“时间”的本质是？", options: [{ text: "刻度。是不可逆的资源，必须被精确管理和利用。", value: "metal" }, { text: "轮回。像四季更替，花开花落，有它自己的节奏。", value: "wood" }, { text: "河流。是连续不断的，有时湍急有时平缓，顺流而下。", value: "water" }, { text: "瞬间。只有当下这一秒是真实的，要抓住高光时刻。", value: "fire" }, { text: "积淀。是历史的堆积，时间越久，价值越厚重。", value: "earth" }]},
-        { text: "梦境中出现频率最高的场景氛围是？", options: [{ text: "紧张的任务。考试、追逐、攀爬，需要解决具体问题。", value: "metal" }, { text: "复杂的迷宫。森林、校园、寻找某人，充满探索感。", value: "wood" }, { text: "失重的漂浮。深海、飞翔、坠落，情绪流动性很强。", value: "water" }, { text: "激烈的冲突。火灾、战场、舞台，伴随着强烈的情绪。", value: "fire" }, { text: "沉重的现实。搬家、赶路、负重前行，感觉身体很累。", value: "earth" }]},
-        { text: "如果你的灵魂有触感，你觉得它像？", options: [{ text: "冰冷的金属。光滑、坚硬、敲击有清脆的回响。", value: "metal" }, { text: "粗糙树皮。有纹理、有温度，虽然不平整但真实。", value: "wood" }, { text: "流动的水银。抓不住、无孔不入，形态千变万化。", value: "water" }, { text: "滚烫的岩浆。炽热、发光、带有危险的吸引力。", value: "fire" }, { text: "干燥的陶土。厚实、粗粝、有颗粒感，给人踏实感。", value: "earth" }]},
-        { text: "假如世界重启，你只能保留一样文明产物，你会选？", options: [{ text: "一把刀。代表工具与防卫，是生存的最基本保障。", value: "metal" }, { text: "一颗种子。代表农业与希望，能繁衍出新的生命。", value: "wood" }, { text: "一本书。代表知识与智慧，记录了文明的火种。", value: "water" }, { text: "一盏灯。代表光明与热量，驱散长夜的恐惧。", value: "fire" }, { text: "一块砖。代表建筑与定居，是重建家园的基石。", value: "earth" }]},
-        { text: "哪种声音最能让你感到灵魂共鸣？", options: [{ text: "钟表的滴答声。规律、精准，让人感到秩序的美感。", value: "metal" }, { text: "风吹林海声。自然、舒展，让人感到生命的呼吸。", value: "wood" }, { text: "雨打芭蕉声。连绵、清脆，让人感到情绪的流动。", value: "water" }, { text: "人群欢呼声。热烈、激昂，让人感到存在的价值。", value: "fire" }, { text: "集市喧闹声。烟火、嘈杂，让人感到生活的真实。", value: "earth" }]},
-        { text: "如果有一张单程机票，你最想去哪里？", options: [{ text: "极地冰川。去挑战极限，在纯净的白色世界审视自我。", value: "metal" }, { text: "古老雨林。去探寻遗迹，在充满生机的地方感受岁月。", value: "wood" }, { text: "深海孤岛。去与世隔绝，在无尽的蓝色中放空思绪。", value: "water" }, { text: "繁华都会。去世界中心，在灯红酒绿中体验极致繁华。", value: "fire" }, { text: "故乡田园。去回归根源，在熟悉的土地上寻找安宁。", value: "earth" }]},
-        { text: "当有人无意中冒犯了你，你内心OS是？", options: [{ text: "“这人真没规矩，以后离他远点。”（界限感）", value: "metal" }, { text: "“他可能不是故意的，大家都不容易。”（包容心）", value: "wood" }, { text: "“有意思，看看他到底想干什么。”（观察欲）", value: "water" }, { text: "“竟然敢不给我面子？太气人了！”（自尊心）", value: "fire" }, { text: "“懒得理他，别来沾边就行。”（钝感力）", value: "earth" }]},
-        { text: "你理想中的家，最不能缺少的是？", options: [{ text: "收纳系统。所有东西都要分类归位，井井有条。", value: "metal" }, { text: "绿植庭院。要有生机勃勃的植物，能晒到太阳。", value: "wood" }, { text: "超大浴缸。能泡澡放松，享受私密的流动时光。", value: "water" }, { text: "豪华客厅。要有足够大的空间开派对，展示品味。", value: "fire" }, { text: "宽大厨房。要有充满烟火气的烹饪空间，囤满食物。", value: "earth" }]},
-        { text: "在人体机能中，你觉得自己最像？", options: [{ text: "骨骼。支撑起整个架构，坚硬且不可或缺。", value: "metal" }, { text: "神经。传递信号，连接各个部分，敏感且关键。", value: "wood" }, { text: "血液。输送营养，维持循环，流动且包容。", value: "water" }, { text: "面容。展示表情，吸引目光，独特且生动。", value: "fire" }, { text: "肌肉。承担负重，提供动力，厚实且耐劳。", value: "earth" }]},
-        { text: "对于“竞争”，你的真实态度是？", options: [{ text: "优胜劣汰。我必须不断变强，才能立于不败之地。", value: "metal" }, { text: "共同成长。比起输赢，我更看重过程中学到了什么。", value: "wood" }, { text: "策略为王。不一定要硬碰硬，巧劲往往能拨千斤。", value: "water" }, { text: "享受舞台。竞争让我兴奋，我喜欢这种心跳加速的感觉。", value: "fire" }, { text: "稳中求胜。不争一时长短，看谁能笑到最后。", value: "earth" }]},
-        { text: "你觉得自己性格中最大的“特质”是？", options: [{ text: "【狠】。对自己够狠，关键时刻能下决断。", value: "metal" }, { text: "【韧】。百折不挠，无论遭遇什么都能恢复。", value: "wood" }, { text: "【滑】。圆润通透，很难被抓住把柄或困住。", value: "water" }, { text: "【燃】。充满激情，有点就着，行动力极强。", value: "fire" }, { text: "【稳】。泰山崩于前而色不变，情绪极度稳定。", value: "earth" }]},
-        { text: "你最喜欢的季节氛围是？", options: [{ text: "深秋。空气凛冽干爽，万物肃杀，思维最清晰。", value: "metal" }, { text: "初春。嫩芽破土，湿润温暖，充满希望的气息。", value: "wood" }, { text: "隆冬。大雪纷飞，世界安静，适合藏起来独处。", value: "water" }, { text: "盛夏。烈日当空，暴雨倾盆，能量释放到极致。", value: "fire" }, { text: "长夏。季节交替时的闷热潮湿，万物成熟厚重。", value: "earth" }]},
-        { text: "关于死亡，你更倾向于哪种理解？", options: [{ text: "程序的终结。像关机一样，一切归零，没什么可怕的。", value: "metal" }, { text: "生命的循环。化作春泥更护花，以另一种形式存在。", value: "wood" }, { text: "回归虚无。像水滴汇入大海，消融了个体，获得永恒。", value: "water" }, { text: "最后的谢幕。希望那是人生最壮丽的时刻，被后人铭记。", value: "fire" }, { text: "尘土的归宿。落叶归根，回到大地母亲的怀抱。", value: "earth" }]},
-        { text: "如果你的一生是一场电影，你希望结局是？", options: [{ text: "主角独自站在山顶，俯瞰世界，内心宁静而强大。", value: "metal" }, { text: "主角在树下给孩子们讲故事，精神火炬代代相传。", value: "wood" }, { text: "主角坐船远去，消失在迷雾中，留下一个开放式结局。", value: "water" }, { text: "主角在盛大的颁奖礼上，享受掌声与鲜花，完美落幕。", value: "fire" }, { text: "全家人围坐在一起吃团圆饭，画面温馨，岁月静好。", value: "earth" }]},
-        { text: "看到同龄人比你成功，你内心深处的想法是？", options: [{ text: "“他一定有值得学习的方法，我要拆解他的成功路径。”", value: "metal" }, { text: "“每个人花期不同，祝福他，我也在按自己的节奏走。”", value: "wood" }, { text: "“这背后肯定有运气或资源的成分，不必太当真。”", value: "water" }, { text: "“凭什么？我比他强多了！我一定要超过他！”", value: "fire" }, { text: "“只要我不缺吃不缺穿，过好自己的日子就行。”", value: "earth" }]},
-        { text: "你认为真正的“知己”应该是？", options: [{ text: "战友。能并肩作战，在事业上互相帮扶，利益一致。", value: "metal" }, { text: "树洞。能无底线包容我的情绪，懂我的欲言又止。", value: "wood" }, { text: "玩伴。能一起探索世界，不拘泥于形式，轻松自在。", value: "water" }, { text: "粉丝。能时刻欣赏我，在我低谷时给我自信和鼓励。", value: "fire" }, { text: "家人。知根知底，哪怕不说话也不尴尬，绝对忠诚。", value: "earth" }]},
-        { text: "对于“命运”，你的信条是？", options: [{ text: "我命由我不由天。规则是强者制定的，我可以改写。", value: "metal" }, { text: "积善之家必有余庆。多行好事，莫问前程。", value: "wood" }, { text: "顺势而为。命里有时终须有，不强求，不硬抗。", value: "water" }, { text: "爱拼才会赢。三分天注定，七分靠打拼，敢赌就能赢。", value: "fire" }, { text: "落地生根。老天爷饿不死瞎家雀，踏实活着就有饭吃。", value: "earth" }]},
-        { text: "在做重大决策时，你主要依赖？", options: [{ text: "数据与逻辑。列出优缺点，进行风险评估，理性判断。", value: "metal" }, { text: "价值观与良知。这件事是否符合我的道德标准？是否伤人？", value: "wood" }, { text: "直觉与预感。说不清为什么，但我的第六感告诉我该选这个。", value: "water" }, { text: "冲动与渴望。哪一个让我更兴奋？哪一个让我心跳加速？", value: "fire" }, { text: "经验与先例。以前是怎么做的？别人是怎么做的？求稳。", value: "earth" }]},
-        { text: "你觉得自己性格中最大的“软肋”可能是？", options: [{ text: "过于冷硬。有时候太讲原则，显得不近人情，伤了感情。", value: "metal" }, { text: "过于心软。容易被道德绑架，不懂拒绝，委屈了自己。", value: "wood" }, { text: "过于散漫。有时候缺乏定力，容易受环境影响，三分钟热度。", value: "water" }, { text: "过于急躁。情绪上来了控制不住，容易冲动坏事。", value: "fire" }, { text: "过于固执。认死理，不懂变通，容易错过新机会。", value: "earth" }]},
-        { text: "闭上眼睛，推开那扇通往灵魂深处的门，你最希望看到？", options: [{ text: "一把金色的王座。（象征绝对的掌控与秩序）", value: "metal" }, { text: "一片茂密的原始森林。（象征生机与成长的空间）", value: "wood" }, { text: "深不见底的蓝色大海。（象征自由与无限的包容）", value: "water" }, { text: "一个正在喷发的火山口。（象征极致的能量与宣泄）", value: "fire" }, { text: "一座堆满金币和粮食的仓库。（象征极致的安全与富足）", value: "earth" }] }
-    ];
+    <!-- 加载失败提示 -->
+    <div id="error-container" class="error-container" style="display: none;">
+        <div class="text-amber-500 text-4xl mb-4"><i class="fas fa-exclamation-triangle"></i></div>
+        <h1 class="text-2xl font-bold text-white mb-4">应用加载失败</h1>
+        <p class="text-slate-400 mb-6 text-center max-w-md">核心组件加载失败，请刷新页面重试或检查网络连接</p>
+        <button onclick="window.location.reload()" class="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition mb-4">
+            刷新页面
+        </button>
+        <button onclick="loadVueBackup()" class="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition">
+            尝试备用方案
+        </button>
+        <p class="text-slate-500 text-sm mt-8">如果问题持续，请联系技术支持</p>
+    </div>
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+    <script>
+        // Vue加载检测和备用方案
+        function checkVueLoaded() {
+            // 等待3秒，检查Vue是否加载成功
+            setTimeout(function() {
+                if (typeof Vue === 'undefined') {
+                    console.error('Vue加载失败，显示错误界面');
+                    document.getElementById('error-container').style.display = 'flex';
+                    document.getElementById('app').style.display = 'none';
+                } else {
+                    console.log('Vue加载成功，初始化应用');
+                    document.getElementById('error-container').style.display = 'none';
+                    document.getElementById('app').style.display = 'flex';
+                    initializeVueApp();
+                }
+            }, 3000);
         }
-        return array;
-    }
-
-    const { createApp, ref, computed } = Vue;
-
-    createApp({
-        setup() {
-            const phase = ref('start');
-            const gender = ref('');
-            const currentQIndex = ref(0);
-            const answers = ref([]);
-            const playAnimation = ref(false);
-            const generatedHookText = ref('');
-            const sphereState = ref('start'); 
-            const questions = ref([]);
-            const resultData = ref({ main: ATTRIBUTES.metal, second: ATTRIBUTES.wood, wandering: ATTRIBUTES.water, missing: ATTRIBUTES.earth, missingKey: 'earth', comboName: '' });
-            const scarcity = ref(12.5);
+        
+        // 加载备用Vue CDN
+        function loadVueBackup() {
+            document.getElementById('error-container').innerHTML = `
+                <div class="text-amber-500 text-4xl mb-4"><i class="fas fa-spinner fa-spin"></i></div>
+                <h1 class="text-xl font-bold text-white mb-4">正在加载备用组件...</h1>
+                <p class="text-slate-400 mb-6">请稍候</p>
+            `;
             
-            // 付费解锁变量
-            const unlockCode = ref('');
-            const unlockError = ref('');
-            const isVerifying = ref(false);
-
-            const initQuestions = () => { 
-                const total = RAW_QUESTIONS.length; 
-                const normalQuestions = RAW_QUESTIONS.slice(0, total - 1); 
-                const ultimateQuestion = RAW_QUESTIONS[total - 1]; 
-                const shuffledNormal = shuffleArray([...normalQuestions]); 
-                const finalOrder = [...shuffledNormal, ultimateQuestion]; 
-                questions.value = finalOrder.map(q => ({ ...q, shuffledOptions: shuffleArray([...q.options]) })); 
+            // 加载备用Vue CDN
+            const backupScript = document.createElement('script');
+            backupScript.src = 'https://unpkg.com/vue@3/dist/vue.global.js';
+            backupScript.onload = function() {
+                console.log('备用Vue CDN加载成功');
+                setTimeout(function() {
+                    window.location.reload();
+                }, 500);
             };
-
-            const enterSystem = () => { phase.value = 'gender'; };
-
-            // ★★★ 修复：补全 handleSphereClick 函数 ★★★
-            const handleSphereClick = () => {
-                if (phase.value === 'start') {
-                    enterSystem();
-                }
+            backupScript.onerror = function() {
+                document.getElementById('error-container').innerHTML = `
+                    <div class="text-red-500 text-4xl mb-4"><i class="fas fa-times-circle"></i></div>
+                    <h1 class="text-xl font-bold text-white mb-4">加载失败</h1>
+                    <p class="text-slate-400 mb-6">所有备用方案均失败，请检查网络连接</p>
+                    <button onclick="window.location.reload()" class="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition">
+                        刷新页面
+                    </button>
+                `;
             };
-
-            const selectGender = (g) => { gender.value = g; initQuestions(); phase.value = 'quiz'; sphereState.value = 'quiz'; };
+            document.head.appendChild(backupScript);
+        }
+        
+        // 初始化Vue应用
+        function initializeVueApp() {
+            // 定义常量和辅助函数
+            const ATTRIBUTES = {
+                metal: { color: '#cbd5e1', char: '金', icon: 'fa-solid fa-mountain', nature: '冷峻、秩序', danger: '过刚则折' },
+                wood: { color: '#10b981', char: '木', icon: 'fa-solid fa-tree', nature: '仁慈、生长', danger: '优柔寡断' },
+                water: { color: '#3b82f6', char: '水', icon: 'fa-solid fa-water', nature: '深邃、流动', danger: '心思过重' },
+                fire: { color: '#ef4444', char: '火', icon: 'fa-solid fa-fire', nature: '炽热、爆发', danger: '三分钟热度' },
+                earth: { color: '#d97706', char: '土', icon: 'fa-solid fa-cubes', nature: '厚重、承载', danger: '固步自封' }
+            };
+            const ADJECTIVES = { metal: '冷峻', wood: '仁慈', water: '深邃', fire: '炽热', earth: '厚重' };
+            const NOUNS = { metal: '金', wood: '木', water: '水', fire: '火', earth: '土' };
+            const SUFFIXES = { metal: '· 藏锋', wood: '· 归根', water: '· 潜渊', fire: '· 燃魂', earth: '· 镇岳' };
             
-            const handleAnswer = (val) => {
-                answers.value.push(val);
-                if (currentQIndex.value < questions.value.length - 1) {
-                    currentQIndex.value++;
-                } else {
-                    calculateResult();
-                }
-            };
+            // 题目数据
+            const RAW_QUESTIONS = [
+                { text: "在全是陌生人的高端社交晚宴上，哪种状态最让你感到自在？", options: [{ text: "静静观察局势，只在必要时与关键人物进行高效沟通。", value: "metal" }, { text: "做一个温和的倾听者，如果有人落单，我会主动释放善意。", value: "wood" }, { text: "像水一样流动，在不同圈子间穿梭，不固定在任何位置。", value: "water" }, { text: "成为话题的中心，用幽默或观点吸引大家的注意力。", value: "fire" }, { text: "找到舒适的角落享受美食，保持内心平静，等待他人靠近。", value: "earth" }] },
+                { text: "当朋友遭遇情感背叛，你的第一本能反应是？", options: [{ text: "立刻帮他分析止损方案：有没有经济损失？如何取证？", value: "metal" }, { text: "感同身受地难过，默默陪伴，提供无条件的情感支持。", value: "wood" }, { text: "立刻察觉到其中的猫腻，帮朋友分析对方的心理漏洞。", value: "water" }, { text: "怒火中烧，恨不得冲过去帮朋友出头，宣泄愤怒。", value: "fire" }, { text: "先照顾朋友的身体，递纸巾、做饭，用生活细节治愈。", value: "earth" }] },
+                { text: "在团队协作中，你最难以忍受哪种行为？", options: [{ text: "缺乏时间观念，做事逻辑混乱，效率低下。", value: "metal" }, { text: "冷漠自私，为了利益不惜伤害团队感情。", value: "wood" }, { text: "不知变通，死守教条，导致项目停滞不前。", value: "water" }, { text: "消极怠工，总是泼冷水，缺乏激情和斗志。", value: "fire" }, { text: "光说不练，满嘴空话，最后无法落地执行。", value: "earth" }] },
+                { text: "如果让你掌管一家公司，你最看重的管理哲学是？", options: [{ text: "法治。制度高于一切，赏罚分明，建立绝对的秩序。", value: "metal" }, { text: "德治。以人为本，注重团队成长，打造像家一样的氛围。", value: "wood" }, { text: "智治。灵活应变，顺势而为，在市场波动中寻找最优解。", value: "water" }, { text: "名治。打造品牌光环，让公司成为行业灯塔，吸引顶尖人才。", value: "fire" }, { text: "稳治。现金流第一，步步为营，确保基业长青，拒绝冒进。", value: "earth" }] },
+                { text: "面对一件昂贵但心仪的物品，最终促使你下单的理由是？", options: [{ text: "它的工艺、材质和保值率，经得起理性的推敲。", value: "metal" }, { text: "它背后的故事、理念或匠心，深深打动了我的内心。", value: "wood" }, { text: "它非常稀缺或正当红，如果不喜欢了也容易转手。", value: "water" }, { text: "它能完美衬托我的气质，让我成为人群中的亮点。", value: "fire" }, { text: "它的耐用性和实用性，能陪伴我很久，物尽其用。", value: "earth" }] },
+                { text: "如果获得一笔意外之财，你倾向于如何分配？", options: [{ text: "购买硬通货（如黄金、核心房产），确保资产不缩水。", value: "metal" }, { text: "投资于教育、公益或家人，让财富产生精神价值。", value: "wood" }, { text: "分散配置，留一部分现金流，寻找高回报的商业机会。", value: "water" }, { text: "奖励自己，体验顶级的生活方式，此时不搏何时搏。", value: "fire" }, { text: "存入最稳妥的账户，或者提前还贷，消除后顾之忧。", value: "earth" }] },
+                { text: "当工作陷入绝境，看似无法完成时，你会？", options: [{ text: "果断切割。放弃沉没成本，迅速重组资源，寻找新突破口。", value: "metal" }, { text: "坚韧生长。相信坚持的力量，用诚意打动他人协助。", value: "wood" }, { text: "迂回包抄。不走寻常路，利用规则漏洞或信息差破局。", value: "water" }, { text: "背水一战。巨大的压力反而激发斗志，创造奇迹。", value: "fire" }, { text: "筑牢防线。先保住基本盘，在这个基础上慢慢图谋。", value: "earth" }] },
+                { text: "你潜意识里认为，什么样的状态才算"人生赢家"？", options: [{ text: "掌控权。拥有制定规则的能力，让周围环境井井有条。", value: "metal" }, { text: "影响力。思想被传承，善意被感知，精神世界富足。", value: "wood" }, { text: "自由度。不受任何束缚，拥有随时可以说"不"的权利。", value: "water" }, { text: "荣耀感。活得轰轰烈烈，被万人瞩目，留下传奇。", value: "fire" }, { text: "安全感。现世安稳，家人闲坐，灯火可亲。", value: "earth" }]},
+                { text: "在选择居住环境时，你最在意的核心要素是？", options: [{ text: "地段与圈层。这代表了资源的集中度和未来的增值潜力。", value: "metal" }, { text: "生态与人文。周围要有树木、书店，邻里关系和谐。", value: "wood" }, { text: "便利与流动。交通四通八达，方便我随时去往任何地方。", value: "water" }, { text: "视野与气派。要有大落地窗，能俯瞰城市，彰显格调。", value: "fire" }, { text: "结构与静谧。房子要结实，隔音要好，给我绝对的私密感。", value: "earth" }]},
+                { text: "如果穿越回古代乱世，你觉得哪个角色最能发挥你的天赋？", options: [{ text: "大将军。以严明的纪律统领三军，平定战乱。", value: "metal" }, { text: "隐世神医。悬壶济世，在乱世中保留一份仁心。", value: "wood" }, { text: "幕后谋士。运筹帷幄之中，决胜千里之外。", value: "water" }, { text: "乱世枭雄。振臂一呼，建立新的王朝，成就霸业。", value: "fire" }, { text: "一方豪绅。深筑墙，广积粮，庇护一方百姓。", value: "earth" }]},
+                { text: "遇到极不开心的事情，你通常会怎么排解？", options: [{ text: "通过高强度运动或整理房间，用身体的秩序恢复内心的秩序。", value: "metal" }, { text: "允许自己悲伤，通过阅读、书写或与知己倾诉来疗愈。", value: "wood" }, { text: "转移注意力，去热闹的地方，或者找个新乐子冲淡不快。", value: "water" }, { text: "彻底宣泄，大哭一场、K歌或购物，把负能量释放出去。", value: "fire" }, { text: "用美食慰藉自己，或者睡个昏天黑地，让身体先恢复。", value: "earth" }]},
+                { text: "如果必须选择一种超能力，你最想要的是？", options: [{ text: "法则重写。能够制定世界的运行规则，让一切按逻辑运转。", value: "metal" }, { text: "万物复苏。让荒芜的土地瞬间长出森林，治愈一切创伤。", value: "wood" }, { text: "全知之眼。能看穿所有人的心思和事物的本质，洞察一切。", value: "water" }, { text: "能量掌控。能够操控光与火，拥有毁灭与创造的极致力量。", value: "fire" }, { text: "绝对防御。拥有任何力量都无法摧毁的护盾，守护想守护的。", value: "earth" }]},
+                { text: "当和伴侣发生严重分歧时，你倾向于？", options: [{ text: "冷静陈述事实，用逻辑说服对方，不让情绪干扰判断。", value: "metal" }, { text: "为了不伤害感情，愿意先退一步，寻找双方都能接受的妥协点。", value: "wood" }, { text: "用幽默化解尴尬，或者暂时搁置争议，等时机成熟再解决。", value: "water" }, { text: "情绪激烈地表达立场，因为在乎，所以必须把心里话说出来。", value: "fire" }, { text: "保持沉默，拒绝无意义的争吵，用行动（如做家务）来表达态度。", value: "earth" }]},
+                { text: "你理想中的伴侣最核心的特质是？", options: [{ text: "能力出众。能与我势均力敌，在事业上互相成就。", value: "metal" }, { text: "善良温柔。能理解我的精神世界，提供情绪价值。", value: "wood" }, { text: "有趣灵动。能带给我新鲜感，生活永远不会枯燥。", value: "water" }, { text: "崇拜我。能看到我的闪光点，给我无条件的支持和赞美。", value: "fire" }, { text: "踏实顾家。情绪稳定，能和我一起经营长久的生活。", value: "earth" }]},
+                { text: "你对"承诺"的理解更接近于？", options: [{ text: "契约。一旦签订就必须严格执行，这是底线。", value: "metal" }, { text: "愿景。这是我们共同成长的方向，需要一起努力。", value: "wood" }, { text: "动态。根据当下的情况灵活调整，不必死守教条。", value: "water" }, { text: "誓言。在那个瞬间我是真心的，这就足够了。", value: "fire" }, { text: "责任。这是一种无声的重担，我会用一生去扛。", value: "earth" }]},
+                { text: "你内心最深处的恐惧来源于？", options: [{ text: "失控。无论是生活还是情绪，一旦脱离轨道就让我恐慌。", value: "metal" }, { text: "孤独。害怕与世界断连，害怕没人理解我的内心。", value: "wood" }, { text: "停滞。害怕被困在同一个地方，一眼望到头的人生。", value: "water" }, { text: "平庸。害怕自己变得无足轻重，被人群淹没。", value: "fire" }, { text: "动荡。害怕失去现有的基础，居无定所，朝不保夕。", value: "earth" }]},
+                { text: "为了快速恢复精力，你偏向于？", options: [{ text: "独处冥想。切断外界干扰，通过内观找回内心的秩序。", value: "metal" }, { text: "回归自然。去公园、森林或水边，从大自然中吸取能量。", value: "wood" }, { text: "社交流动。和不同的人聊天，交换信息，让思维活跃起来。", value: "water" }, { text: "尽情玩乐。去游乐场或看场电影，在欢笑和刺激中充电。", value: "fire" }, { text: "深度睡眠。或者吃一顿满足的碳水，让身体彻底放松。", value: "earth" }]},
+                { text: "如果必须化身为一种图腾动物，你选？", options: [{ text: "孤鹰。翱翔高空，视野广阔，精准捕猎，享受孤独。", value: "metal" }, { text: "群象。温和巨兽，拥有强大的记忆力和族群保护欲。", value: "wood" }, { text: "灵狐。机智多变，适应力极强，总能绝处逢生。", value: "water" }, { text: "雄狮。统领草原，威严霸气，也是力量的象征。", value: "fire" }, { text: "玄龟。寿命极长，背负重甲，任凭风浪稳如磐石。", value: "earth" }]},
+                { text: "在绝境求生游戏中，你会选择哪种装备？", options: [{ text: "狙击枪。在远处解决威胁，保持绝对的安全距离。", value: "metal" }, { text: "医疗包。不仅能自救，还能通过救人建立盟友关系。", value: "wood" }, { text: "迷彩服。伪装自己，观察局势，不到最后不暴露。", value: "water" }, { text: "炸药包。拥有同归于尽的威慑力，让人不敢轻易招惹。", value: "fire" }, { text: "防爆盾。无论发生什么，先保证自己不会受伤。", value: "earth" }]},
+                { text: "你觉得"时间"的本质是？", options: [{ text: "刻度。是不可逆的资源，必须被精确管理和利用。", value: "metal" }, { text: "轮回。像四季更替，花开花落，有它自己的节奏。", value: "wood" }, { text: "河流。是连续不断的，有时湍急有时平缓，顺流而下。", value: "water" }, { text: "瞬间。只有当下这一秒是真实的，要抓住高光时刻。", value: "fire" }, { text: "积淀。是历史的堆积，时间越久，价值越厚重。", value: "earth" }]},
+                { text: "梦境中出现频率最高的场景氛围是？", options: [{ text: "紧张的任务。考试、追逐、攀爬，需要解决具体问题。", value: "metal" }, { text: "复杂的迷宫。森林、校园、寻找某人，充满探索感。", value: "wood" }, { text: "失重的漂浮。深海、飞翔、坠落，情绪流动性很强。", value: "water" }, { text: "激烈的冲突。火灾、战场、舞台，伴随着强烈的情绪。", value: "fire" }, { text: "沉重的现实。搬家、赶路、负重前行，感觉身体很累。", value: "earth" }]},
+                { text: "如果你的灵魂有触感，你觉得它像？", options: [{ text: "冰冷的金属。光滑、坚硬、敲击有清脆的回响。", value: "metal" }, { text: "粗糙树皮。有纹理、有温度，虽然不平整但真实。", value: "wood" }, { text: "流动的水银。抓不住、无孔不入，形态千变万化。", value: "water" }, { text: "滚烫的岩浆。炽热、发光、带有危险的吸引力。", value: "fire" }, { text: "干燥的陶土。厚实、粗粝、有颗粒感，给人踏实感。", value: "earth" }]},
+                { text: "假如世界重启，你只能保留一样文明产物，你会选？", options: [{ text: "一把刀。代表工具与防卫，是生存的最基本保障。", value: "metal" }, { text: "一颗种子。代表农业与希望，能繁衍出新的生命。", value: "wood" }, { text: "一本书。代表知识与智慧，记录了文明的火种。", value: "water" }, { text: "一盏灯。代表光明与热量，驱散长夜的恐惧。", value: "fire" }, { text: "一块砖。代表建筑与定居，是重建家园的基石。", value: "earth" }]},
+                { text: "哪种声音最能让你感到灵魂共鸣？", options: [{ text: "钟表的滴答声。规律、精准，让人感到秩序的美感。", value: "metal" }, { text: "风吹林海声。自然、舒展，让人感到生命的呼吸。", value: "wood" }, { text: "雨打芭蕉声。连绵、清脆，让人感到情绪的流动。", value: "water" }, { text: "人群欢呼声。热烈、激昂，让人感到存在的价值。", value: "fire" }, { text: "集市喧闹声。烟火、嘈杂，让人感到生活的真实。", value: "earth" }]},
+                { text: "如果有一张单程机票，你最想去哪里？", options: [{ text: "极地冰川。去挑战极限，在纯净的白色世界审视自我。", value: "metal" }, { text: "古老雨林。去探寻遗迹，在充满生机的地方感受岁月。", value: "wood" }, { text: "深海孤岛。去与世隔绝，在无尽的蓝色中放空思绪。", value: "water" }, { text: "繁华都会。去世界中心，在灯红酒绿中体验极致繁华。", value: "fire" }, { text: "故乡田园。去回归根源，在熟悉的土地上寻找安宁。", value: "earth" }]},
+                { text: "当有人无意中冒犯了你，你内心OS是？", options: [{ text: ""这人真没规矩，以后离他远点。"（界限感）", value: "metal" }, { text: ""他可能不是故意的，大家都不容易。"（包容心）", value: "wood" }, { text: ""有意思，看看他到底想干什么。"（观察欲）", value: "water" }, { text: ""竟然敢不给我面子？太气人了！"（自尊心）", value: "fire" }, { text: ""懒得理他，别来沾边就行。"（钝感力）", value: "earth" }]},
+                { text: "你理想中的家，最不能缺少的是？", options: [{ text: "收纳系统。所有东西都要分类归位，井井有条。", value: "metal" }, { text: "绿植庭院。要有生机勃勃的植物，能晒到太阳。", value: "wood" }, { text: "超大浴缸。能泡澡放松，享受私密的流动时光。", value: "water" }, { text: "豪华客厅。要有足够大的空间开派对，展示品味。", value: "fire" }, { text: "宽大厨房。要有充满烟火气的烹饪空间，囤满食物。", value: "earth" }]},
+                { text: "在人体机能中，你觉得自己最像？", options: [{ text: "骨骼。支撑起整个架构，坚硬且不可或缺。", value: "metal" }, { text: "神经。传递信号，连接各个部分，敏感且关键。", value: "wood" }, { text: "血液。输送营养，维持循环，流动且包容。", value: "water" }, { text: "面容。展示表情，吸引目光，独特且生动。", value: "fire" }, { text: "肌肉。承担负重，提供动力，厚实且耐劳。", value: "earth" }]},
+                { text: "对于"竞争"，你的真实态度是？", options: [{ text: "优胜劣汰。我必须不断变强，才能立于不败之地。", value: "metal" }, { text: "共同成长。比起输赢，我更看重过程中学到了什么。", value: "wood" }, { text: "策略为王。不一定要硬碰硬，巧劲往往能拨千斤。", value: "water" }, { text: "享受舞台。竞争让我兴奋，我喜欢这种心跳加速的感觉。", value: "fire" }, { text: "稳中求胜。不争一时长短，看谁能笑到最后。", value: "earth" }]},
+                { text: "你觉得自己性格中最大的"特质"是？", options: [{ text: "【狠】。对自己够狠，关键时刻能下决断。", value: "metal" }, { text: "【韧】。百折不挠，无论遭遇什么都能恢复。", value: "wood" }, { text: "【滑】。圆润通透，很难被抓住把柄或困住。", value: "water" }, { text: "【燃】。充满激情，有点就着，行动力极强。", value: "fire" }, { text: "【稳】。泰山崩于前而色不变，情绪极度稳定。", value: "earth" }]},
+                { text: "你最喜欢的季节氛围是？", options: [{ text: "深秋。空气凛冽干爽，万物肃杀，思维最清晰。", value: "metal" }, { text: "初春。嫩芽破土，湿润温暖，充满希望的气息。", value: "wood" }, { text: "隆冬。大雪纷飞，世界安静，适合藏起来独处。", value: "water" }, { text: "盛夏。烈日当空，暴雨倾盆，能量释放到极致。", value: "fire" }, { text: "长夏。季节交替时的闷热潮湿，万物成熟厚重。", value: "earth" }]},
+                { text: "关于死亡，你更倾向于哪种理解？", options: [{ text: "程序的终结。像关机一样，一切归零，没什么可怕的。", value: "metal" }, { text: "生命的循环。化作春泥更护花，以另一种形式存在。", value: "wood" }, { text: "回归虚无。像水滴汇入大海，消融了个体，获得永恒。", value: "water" }, { text: "最后的谢幕。希望那是人生最壮丽的时刻，被后人铭记。", value: "fire" }, { text: "尘土的归宿。落叶归根，回到大地母亲的怀抱。", value: "earth" }]},
+                { text: "如果你的一生是一场电影，你希望结局是？", options: [{ text: "主角独自站在山顶，俯瞰世界，内心宁静而强大。", value: "metal" }, { text: "主角在树下给孩子们讲故事，精神火炬代代相传。", value: "wood" }, { text: "主角坐船远去，消失在迷雾中，留下一个开放式结局。", value: "water" }, { text: "主角在盛大的颁奖礼上，享受掌声与鲜花，完美落幕。", value: "fire" }, { text: "全家人围坐在一起吃团圆饭，画面温馨，岁月静好。", value: "earth" }]},
+                { text: "看到同龄人比你成功，你内心深处的想法是？", options: [{ text: ""他一定有值得学习的方法，我要拆解他的成功路径。"", value: "metal" }, { text: ""每个人花期不同，祝福他，我也在按自己的节奏走。"", value: "wood" }, { text: ""这背后肯定有运气或资源的成分，不必太当真。"", value: "water" }, { text: ""凭什么？我比他强多了！我一定要超过他！"", value: "fire" }, { text: ""只要我不缺吃不缺穿，过好自己的日子就行。"", value: "earth" }]},
+                { text: "你认为真正的"知己"应该是？", options: [{ text: "战友。能并肩作战，在事业上互相帮扶，利益一致。", value: "metal" }, { text: "树洞。能无底线包容我的情绪，懂我的欲言又止。", value: "wood" }, { text: "玩伴。能一起探索世界，不拘泥于形式，轻松自在。", value: "water" }, { text: "粉丝。能时刻欣赏我，在我低谷时给我自信和鼓励。", value: "fire" }, { text: "家人。知根知底，哪怕不说话也不尴尬，绝对忠诚。", value: "earth" }]},
+                { text: "对于"命运"，你的信条是？", options: [{ text: "我命由我不由天。规则是强者制定的，我可以改写。", value: "metal" }, { text: "积善之家必有余庆。多行好事，莫问前程。", value: "wood" }, { text: "顺势而为。命里有时终须有，不强求，不硬抗。", value: "water" }, { text: "爱拼才会赢。三分天注定，七分靠打拼，敢赌就能赢。", value: "fire" }, { text: "落地生根。老天爷饿不死瞎家雀，踏实活着就有饭吃。", value: "earth" }]},
+                { text: "在做重大决策时，你主要依赖？", options: [{ text: "数据与逻辑。列出优缺点，进行风险评估，理性判断。", value: "metal" }, { text: "价值观与良知。这件事是否符合我的道德标准？是否伤人？", value: "wood" }, { text: "直觉与预感。说不清为什么，但我的第六感告诉我该选这个。", value: "water" }, { text: "冲动与渴望。哪一个让我更兴奋？哪一个让我心跳加速？", value: "fire" }, { text: "经验与先例。以前是怎么做的？别人是怎么做的？求稳。", value: "earth" }]},
+                { text: "你觉得自己性格中最大的"软肋"可能是？", options: [{ text: "过于冷硬。有时候太讲原则，显得不近人情，伤了感情。", value: "metal" }, { text: "过于心软。容易被道德绑架，不懂拒绝，委屈了自己。", value: "wood" }, { text: "过于散漫。有时候缺乏定力，容易受环境影响，三分钟热度。", value: "water" }, { text: "过于急躁。情绪上来了控制不住，容易冲动坏事。", value: "fire" }, { text: "过于固执。认死理，不懂变通，容易错过新机会。", value: "earth" }]},
+                { text: "闭上眼睛，推开那扇通往灵魂深处的门，你最希望看到？", options: [{ text: "一把金色的王座。（象征绝对的掌控与秩序）", value: "metal" }, { text: "一片茂密的原始森林。（象征生机与成长的空间）", value: "wood" }, { text: "深不见底的蓝色大海。（象征自由与无限的包容）", value: "water" }, { text: "一个正在喷发的火山口。（象征极致的能量与宣泄）", value: "fire" }, { text: "一座堆满金币和粮食的仓库。（象征极致的安全与富足）", value: "earth" }] }
+            ];
 
-            const prevQuestion = () => {
-                if (currentQIndex.value > 0) {
-                    currentQIndex.value--; 
-                    answers.value.pop();   
-                } else {
-                    phase.value = 'gender';
-                    answers.value = [];
-                    currentQIndex.value = 0;
-                    sphereState.value = 'start'; 
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
                 }
-            };
+                return array;
+            }
 
-            const calculateResult = () => {
-                phase.value = 'calculating';
-                sphereState.value = 'calc';
-                
-                setTimeout(() => {
-                    const scores = { metal: 0, wood: 0, water: 0, fire: 0, earth: 0 };
-                    answers.value.forEach(a => scores[a]++);
+            const { createApp, ref, computed } = Vue;
+
+            createApp({
+                setup() {
+                    const phase = ref('start');
+                    const gender = ref('');
+                    const currentQIndex = ref(0);
+                    const answers = ref([]);
+                    const playAnimation = ref(false);
+                    const generatedHookText = ref('');
+                    const sphereState = ref('start'); 
+                    const questions = ref([]);
+                    const resultData = ref({ main: ATTRIBUTES.metal, second: ATTRIBUTES.wood, wandering: ATTRIBUTES.water, missing: ATTRIBUTES.earth, missingKey: 'earth', comboName: '' });
+                    const scarcity = ref(12.5);
                     
-                    const sortedEntries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-                    
-                    let mainKey = sortedEntries[0][0];
-                    let secondKey = sortedEntries[1] ? sortedEntries[1][0] : (mainKey === 'water' ? 'wood' : 'water');
-                    const mainScore = sortedEntries[0][1];
-                    const secondScore = sortedEntries[1] ? sortedEntries[1][1] : 0;
-                    
-                    let elementDecisionNote = null;
-                    
-                    if (mainScore === secondScore && mainKey !== secondKey) {
-                        const generateCycle = { wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood' };
-                        const controlCycle = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' };
-                        
-                        if (generateCycle[mainKey] === secondKey) {
-                            elementDecisionNote = `${ATTRIBUTES[mainKey].char}生${ATTRIBUTES[secondKey].char}`;
-                        } else if (generateCycle[secondKey] === mainKey) {
-                            elementDecisionNote = `${ATTRIBUTES[secondKey].char}生${ATTRIBUTES[mainKey].char}`;
-                            [mainKey, secondKey] = [secondKey, mainKey];
-                        } else if (controlCycle[mainKey] === secondKey) {
-                            elementDecisionNote = `${ATTRIBUTES[mainKey].char}克${ATTRIBUTES[secondKey].char}`;
-                        } else if (controlCycle[secondKey] === mainKey) {
-                            elementDecisionNote = `${ATTRIBUTES[secondKey].char}克${ATTRIBUTES[mainKey].char}`;
-                            [mainKey, secondKey] = [secondKey, mainKey];
-                        }
-                    }
-                    
-                    const wanderKey = sortedEntries[2] ? sortedEntries[2][0] : (secondKey === 'fire' ? 'earth' : 'fire');
-                    const sortedLow = Object.entries(scores).sort((a, b) => a[1] - b[1]);
-                    const missingKey = sortedLow[0][0];
-                    
-                    const comboName = ADJECTIVES[secondKey] + NOUNS[mainKey] + SUFFIXES[wanderKey];
-                    
-                    resultData.value = {
-                        main: ATTRIBUTES[mainKey],
-                        second: ATTRIBUTES[secondKey],
-                        wandering: ATTRIBUTES[wanderKey],
-                        missing: ATTRIBUTES[missingKey],
-                        missingKey: missingKey,
-                        comboName: comboName,
-                        elementDecisionNote: elementDecisionNote
+                    // 付费解锁变量
+                    const unlockCode = ref('');
+                    const unlockError = ref('');
+                    const isVerifying = ref(false);
+
+                    const initQuestions = () => { 
+                        const total = RAW_QUESTIONS.length; 
+                        const normalQuestions = RAW_QUESTIONS.slice(0, total - 1); 
+                        const ultimateQuestion = RAW_QUESTIONS[total - 1]; 
+                        const shuffledNormal = shuffleArray([...normalQuestions]); 
+                        const finalOrder = [...shuffledNormal, ultimateQuestion]; 
+                        questions.value = finalOrder.map(q => ({ ...q, shuffledOptions: shuffleArray([...q.options]) })); 
                     };
-                    
-                    generatedHookText.value = generateHookText(resultData.value, gender.value);
-                    scarcity.value = (Math.random() * (18.7 - 4.2) + 4.2).toFixed(1);
-                    
-                    phase.value = 'result';
-                    setTimeout(() => { playAnimation.value = true; }, 100);
-                    
-                }, 2500);
-            };
 
-            const generateHookText = (data, g) => {
-                const m = data.main; 
-                const s = data.second; 
-                const w = data.wandering; 
-                const l = data.missing;
-                
-                let hookText = `<span class="text-amber-500 font-bold">命格定性：</span> 你的命运图谱显示了一种极其罕见的<span class="font-bold text-white">【${data.comboName}】</span>架构。`;
-                
-                if (data.elementDecisionNote) {
-                    hookText += `<br><br><span class="text-amber-500 font-bold">【五行生克判定】</span> 根据五行生克逻辑（${data.elementDecisionNote}），你的主属性判定为<span style="color:${m.color}">${m.char}</span>，副属性为<span style="color:${s.color}">${s.char}</span>。`;
+                    const enterSystem = () => { phase.value = 'gender'; };
+
+                    // ★★★ 修复：补全 handleSphereClick 函数 ★★★
+                    const handleSphereClick = () => {
+                        if (phase.value === 'start') {
+                            enterSystem();
+                        }
+                    };
+
+                    const selectGender = (g) => { gender.value = g; initQuestions(); phase.value = 'quiz'; sphereState.value = 'quiz'; };
+                    
+                    const handleAnswer = (val) => {
+                        answers.value.push(val);
+                        if (currentQIndex.value < questions.value.length - 1) {
+                            currentQIndex.value++;
+                        } else {
+                            calculateResult();
+                        }
+                    };
+
+                    const prevQuestion = () => {
+                        if (currentQIndex.value > 0) {
+                            currentQIndex.value--; 
+                            answers.value.pop();   
+                        } else {
+                            phase.value = 'gender';
+                            answers.value = [];
+                            currentQIndex.value = 0;
+                            sphereState.value = 'start'; 
+                        }
+                    };
+
+                    const calculateResult = () => {
+                        phase.value = 'calculating';
+                        sphereState.value = 'calc';
+                        
+                        setTimeout(() => {
+                            const scores = { metal: 0, wood: 0, water: 0, fire: 0, earth: 0 };
+                            answers.value.forEach(a => scores[a]++);
+                            
+                            const sortedEntries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+                            
+                            let mainKey = sortedEntries[0][0];
+                            let secondKey = sortedEntries[1] ? sortedEntries[1][0] : (mainKey === 'water' ? 'wood' : 'water');
+                            const mainScore = sortedEntries[0][1];
+                            const secondScore = sortedEntries[1] ? sortedEntries[1][1] : 0;
+                            
+                            let elementDecisionNote = null;
+                            
+                            if (mainScore === secondScore && mainKey !== secondKey) {
+                                const generateCycle = { wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood' };
+                                const controlCycle = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' };
+                                
+                                if (generateCycle[mainKey] === secondKey) {
+                                    elementDecisionNote = `${ATTRIBUTES[mainKey].char}生${ATTRIBUTES[secondKey].char}`;
+                                } else if (generateCycle[secondKey] === mainKey) {
+                                    elementDecisionNote = `${ATTRIBUTES[secondKey].char}生${ATTRIBUTES[mainKey].char}`;
+                                    [mainKey, secondKey] = [secondKey, mainKey];
+                                } else if (controlCycle[mainKey] === secondKey) {
+                                    elementDecisionNote = `${ATTRIBUTES[mainKey].char}克${ATTRIBUTES[secondKey].char}`;
+                                } else if (controlCycle[secondKey] === mainKey) {
+                                    elementDecisionNote = `${ATTRIBUTES[secondKey].char}克${ATTRIBUTES[mainKey].char}`;
+                                    [mainKey, secondKey] = [secondKey, mainKey];
+                                }
+                            }
+                            
+                            const wanderKey = sortedEntries[2] ? sortedEntries[2][0] : (secondKey === 'fire' ? 'earth' : 'fire');
+                            const sortedLow = Object.entries(scores).sort((a, b) => a[1] - b[1]);
+                            const missingKey = sortedLow[0][0];
+                            
+                            const comboName = ADJECTIVES[secondKey] + NOUNS[mainKey] + SUFFIXES[wanderKey];
+                            
+                            resultData.value = {
+                                main: ATTRIBUTES[mainKey],
+                                second: ATTRIBUTES[secondKey],
+                                wandering: ATTRIBUTES[wanderKey],
+                                missing: ATTRIBUTES[missingKey],
+                                missingKey: missingKey,
+                                comboName: comboName,
+                                elementDecisionNote: elementDecisionNote
+                            };
+                            
+                            generatedHookText.value = generateHookText(resultData.value, gender.value);
+                            scarcity.value = (Math.random() * (18.7 - 4.2) + 4.2).toFixed(1);
+                            
+                            phase.value = 'result';
+                            setTimeout(() => { playAnimation.value = true; }, 100);
+                            
+                        }, 2500);
+                    };
+
+                    const generateHookText = (data, g) => {
+                        const m = data.main; 
+                        const s = data.second; 
+                        const w = data.wandering; 
+                        const l = data.missing;
+                        
+                        let hookText = `<span class="text-amber-500 font-bold">命格定性：</span> 你的命运图谱显示了一种极其罕见的<span class="font-bold text-white">【${data.comboName}】</span>架构。`;
+                        
+                        if (data.elementDecisionNote) {
+                            hookText += `<br><br><span class="text-amber-500 font-bold">【五行生克判定】</span> 根据五行生克逻辑（${data.elementDecisionNote}），你的主属性判定为<span style="color:${m.color}">${m.char}</span>，副属性为<span style="color:${s.color}">${s.char}</span>。`;
+                        }
+                        
+                        hookText += `<br><br><span class="font-bold text-white">骨相（OS）：</span> 你的底层逻辑由<span style="color:${m.color}">${m.char}</span>构建。这意味着你天生具有<span class="text-white">${m.nature}</span>的特质。在潜意识深处，你并不是在寻求安慰，而是在寻求一种绝对的秩序。这种能量构成了你人格的"硬度"。`;
+                        hookText += `<br><br><span class="font-bold text-white">皮相（Mask）：</span> 然而，为了适应社会，你衍生出了<span style="color:${s.color}">${s.char}</span>作为你的人格面具。这赋予了你必要的社交手段，让你在外人眼中看起来${s.nature.split('、')[0]}。这是一种高明的伪装，保护了你核心的脆弱。`;
+                        hookText += `<br><br><span class="font-bold text-white">致命短板（The Lack）：</span> 当前命盘中最危险的信号，是你能量循环中<span class="text-red-500 font-bold">【缺${l.char}】</span>。这不仅仅是一个性格缺陷，它构成了你人生中反复出现的"诅咒"——你的${l.danger}往往会导致你在关键时刻功亏一篑。`;
+                        hookText += `<br><br><span class="font-bold text-white">破局关键（Key）：</span> 你真正的爆发点隐藏在游离态的<span style="color:${w.color}">${w.char}</span>之中。如果不激活这股力量，你将永远被困在当前的阶层；一旦解锁，这将是你通往下一阶段的唯一钥匙...`;
+                        
+                        return hookText;
+                    };
+
+                    const getAttributeKey = (attrObj) => {
+                        if (!attrObj || !attrObj.char) return 'metal';
+                        if (attrObj.char === '金') return 'metal'; if (attrObj.char === '木') return 'wood';
+                        if (attrObj.char === '水') return 'water'; if (attrObj.char === '火') return 'fire';
+                        return 'earth';
+                    };
+
+                   
+                    const verifyAndUnlock = () => {
+                        const codeToVerify = unlockCode.value.trim();
+                        
+                        if (!codeToVerify) {
+                            unlockError.value = "请输入您的解锁密钥。";
+                            return;
+                        }
+                        
+                        const params = new URLSearchParams({
+                            g: gender.value,
+                            m: getAttributeKey(resultData.value.main),
+                            s: getAttributeKey(resultData.value.second),
+                            w: getAttributeKey(resultData.value.wandering),
+                            l: resultData.value.missingKey,
+                            code: codeToVerify 
+                        });
+                        
+                        window.location.href = `report.html?${params.toString()}`;
+                    };
+
+                    const currentQuestion = computed(() => questions.value[currentQIndex.value]);
+                    const progressPercent = computed(() => questions.value.length === 0 ? 0 : ((currentQIndex.value + 1) / questions.value.length) * 100);
+                    
+                    const percentages = computed(() => {
+                        if (answers.value.length === 0) return { main: 0, sub: 0, wander: 0 };
+                        const scores = { metal: 0, wood: 0, water: 0, fire: 0, earth: 0 };
+                        answers.value.forEach(a => scores[a]++);
+                        const total = answers.value.length;
+                        const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+                        return {
+                            main: Math.round((sorted[0][1] / total) * 100),
+                            sub: Math.round((sorted[1][1] / total) * 100),
+                            wander: Math.round((sorted[2][1] / total) * 100)
+                        };
+                    });
+
+                    const conicGradientStyle = computed(() => {
+                        const p = percentages.value;
+                        const c1 = resultData.value.main.color;
+                        const c2 = resultData.value.second.color;
+                        const c3 = resultData.value.wandering.color;
+                        return `conic-gradient(${c1} 0% ${p.main}%, ${c2} ${p.main}% ${p.main + p.sub}%, ${c3} ${p.main + p.sub}% 100%)`;
+                    });
+
+                    const comboGradientStyle = computed(() => ({ background: `linear-gradient(to right, ${resultData.value.main.color}, ${resultData.value.second.color}, ${resultData.value.wandering.color})` }));
+                    
+                    const sphereStateClass = computed(() => `sphere-state-${sphereState.value} ${phase.value === 'calculating' ? 'implode-active' : ''}`);
+
+                    return { 
+                        phase, selectGender, questions, currentQIndex, currentQuestion, handleAnswer, 
+                        percentages, resultData, scarcity, conicGradientStyle, comboGradientStyle, 
+                        gender, playAnimation, generatedHookText, sphereStateClass, handleSphereClick, 
+                        progressPercent, prevQuestion, unlockCode, unlockError, isVerifying, verifyAndUnlock 
+                    };
                 }
-                
-                hookText += `<br><br><span class="font-bold text-white">骨相（OS）：</span> 你的底层逻辑由<span style="color:${m.color}">${m.char}</span>构建。这意味着你天生具有<span class="text-white">${m.nature}</span>的特质。在潜意识深处，你并不是在寻求安慰，而是在寻求一种绝对的秩序。这种能量构成了你人格的"硬度"。`;
-                hookText += `<br><br><span class="font-bold text-white">皮相（Mask）：</span> 然而，为了适应社会，你衍生出了<span style="color:${s.color}">${s.char}</span>作为你的人格面具。这赋予了你必要的社交手段，让你在外人眼中看起来${s.nature.split('、')[0]}。这是一种高明的伪装，保护了你核心的脆弱。`;
-                hookText += `<br><br><span class="font-bold text-white">致命短板（The Lack）：</span> 当前命盘中最危险的信号，是你能量循环中<span class="text-red-500 font-bold">【缺${l.char}】</span>。这不仅仅是一个性格缺陷，它构成了你人生中反复出现的"诅咒"——你的${l.danger}往往会导致你在关键时刻功亏一篑。`;
-                hookText += `<br><br><span class="font-bold text-white">破局关键（Key）：</span> 你真正的爆发点隐藏在游离态的<span style="color:${w.color}">${w.char}</span>之中。如果不激活这股力量，你将永远被困在当前的阶层；一旦解锁，这将是你通往下一阶段的唯一钥匙...`;
-                
-                return hookText;
-            };
-
-            const getAttributeKey = (attrObj) => {
-                if (!attrObj || !attrObj.char) return 'metal';
-                if (attrObj.char === '金') return 'metal'; if (attrObj.char === '木') return 'wood';
-                if (attrObj.char === '水') return 'water'; if (attrObj.char === '火') return 'fire';
-                return 'earth';
-            };
-
-           
-            const verifyAndUnlock = () => {
-                const codeToVerify = unlockCode.value.trim();
-                
-                if (!codeToVerify) {
-                    unlockError.value = "请输入您的解锁密钥。";
-                    return;
-                }
-                
-                const params = new URLSearchParams({
-                    g: gender.value,
-                    m: getAttributeKey(resultData.value.main),
-                    s: getAttributeKey(resultData.value.second),
-                    w: getAttributeKey(resultData.value.wandering),
-                    l: resultData.value.missingKey,
-                    code: codeToVerify 
-                });
-                
-                window.location.href = `report.html?${params.toString()}`;
-            };
-
-            const currentQuestion = computed(() => questions.value[currentQIndex.value]);
-            const progressPercent = computed(() => questions.value.length === 0 ? 0 : ((currentQIndex.value + 1) / questions.value.length) * 100);
-            
-            const percentages = computed(() => {
-                if (answers.value.length === 0) return { main: 0, sub: 0, wander: 0 };
-                const scores = { metal: 0, wood: 0, water: 0, fire: 0, earth: 0 };
-                answers.value.forEach(a => scores[a]++);
-                const total = answers.value.length;
-                const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-                return {
-                    main: Math.round((sorted[0][1] / total) * 100),
-                    sub: Math.round((sorted[1][1] / total) * 100),
-                    wander: Math.round((sorted[2][1] / total) * 100)
-                };
-            });
-
-            const conicGradientStyle = computed(() => {
-                const p = percentages.value;
-                const c1 = resultData.value.main.color;
-                const c2 = resultData.value.second.color;
-                const c3 = resultData.value.wandering.color;
-                return `conic-gradient(${c1} 0% ${p.main}%, ${c2} ${p.main}% ${p.main + p.sub}%, ${c3} ${p.main + p.sub}% 100%)`;
-            });
-
-            const comboGradientStyle = computed(() => ({ background: `linear-gradient(to right, ${resultData.value.main.color}, ${resultData.value.second.color}, ${resultData.value.wandering.color})` }));
-            
-            const sphereStateClass = computed(() => `sphere-state-${sphereState.value} ${phase.value === 'calculating' ? 'implode-active' : ''}`);
-
-            return { 
-                phase, selectGender, questions, currentQIndex, currentQuestion, handleAnswer, 
-                percentages, resultData, scarcity, conicGradientStyle, comboGradientStyle, 
-                gender, playAnimation, generatedHookText, sphereStateClass, handleSphereClick, 
-                progressPercent, prevQuestion, unlockCode, unlockError, isVerifying, verifyAndUnlock 
-            };
+            }).mount('#app');
         }
-    }).mount('#app');
-</script>
+        
+        // 页面加载完成后检查Vue是否加载成功
+        window.addEventListener('DOMContentLoaded', function() {
+            // 立即显示应用容器
+            document.getElementById('app').style.display = 'flex';
+            // 检查Vue是否加载
+            checkVueLoaded();
+        });
+    </script>
 </body>
 </html>
