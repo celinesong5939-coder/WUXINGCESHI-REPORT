@@ -1,396 +1,166 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全息档案库 - V60.0 Cloud Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    
-    <style>
-        :root { --c-bg: #020617; }
-        body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
-        
-        /* 3D容器 */
-        .totem-container-3d { position: relative; width: 360px; height: 360px; margin: 0 auto; perspective: 1000px; }
-        .totem-3d-wrapper { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; }
-        
+.totem-container-3d { position: relative; width: 360px; height: 360px; margin: 0 auto; perspective: 1000px; }
+.totem-3d-wrapper { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; }
+
+        /* 核心星球 */
         /* 核心星球 - 视觉优化版（去除灰色阴影，增加通透感） */
-        .planet-core {
-            position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; border-radius: 50%;
-            transform: translate(-50%, -50%);
+.planet-core {
+position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; border-radius: 50%;
+transform: translate(-50%, -50%);
+            /* 保持高亮中心，确保通透感 */
             /* 高光中心，边缘透明，彻底消除黑心 */
-            background: radial-gradient(circle at 30% 30%, 
-                rgba(255,255,255,1) 0%, 
+background: radial-gradient(circle at 30% 30%, 
+rgba(255,255,255,1) 0%, 
+                currentColor 40%, 
+                rgba(0,0,0,0.2) 150%);
                 currentColor 45%, 
                 rgba(0,0,0,0.1) 150%);
             /* 增加同色光晕 */
-            box-shadow: 
-                0 0 60px currentColor,
+box-shadow: 
+0 0 60px currentColor,
+                0 0 30px rgba(255,255,255,0.4) inset;
                 0 0 40px rgba(255,255,255,0.3) inset;
-            z-index: 20; 
-            animation: planet-rotate 25s linear infinite;
-        }
-        
+z-index: 20; 
+animation: planet-rotate 25s linear infinite;
+}
+
+        /* ========================================= */
+        /* 核心修改：奢华流金字体样式 (High-End Text) */
+        /* ========================================= */
         /* 奢华流金字体样式 (黑金流光 + 强力投影) */
-        .element-char {
-            font-size: 4.5rem;
-            font-weight: 900;
+.element-char {
+font-size: 4.5rem;
+font-weight: 900;
+            font-family: 'Noto Serif SC', serif; /* 强制使用衬线体增加高级感 */
+            
+            /* 制作流金渐变效果 (Champagne Gold Gradient) */
+            background: linear-gradient(180deg, 
+                #FFFBEB 0%,   /* 顶部：亮白金 */
+                #FCD34D 40%,  /* 中部：黄金 */
+                #B45309 100%  /* 底部：暗铜金 */
+            );
             font-family: 'Noto Serif SC', serif;
             /* 流金渐变色 */
             background: linear-gradient(180deg, #FFFBEB 0%, #FCD34D 40%, #B45309 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+            
+            /* 关键：强力投影 (Drop Shadow) */
+            /* 这层黑色的影子能确保金色字体在白色星球上也能清晰浮现 */
+            filter: drop-shadow(0 2px 0px rgba(0,0,0,0.5)) drop-shadow(0 5px 10px rgba(0,0,0,0.6));
+            
             /* 强力投影，确保在白色背景上也清晰可见 */
             filter: drop-shadow(0 2px 0px rgba(0,0,0,0.5)) drop-shadow(0 5px 15px rgba(0,0,0,0.8));
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30;
-            pointer-events: none;
-        }
-
-        /* 大气层 */
-        .planet-atmosphere {
-            position: absolute; top: 50%; left: 50%; width: 240px; height: 240px; border-radius: 50%;
-            transform: translate(-50%, -50%);
-            background: radial-gradient(circle, rgba(255,255,255,0) 40%, currentColor 85%);
-            opacity: 0.6; filter: blur(35px); z-index: 10; animation: atmosphere-pulse 4s ease-in-out infinite;
-            mix-blend-mode: screen; 
-        }
-        
-        .planet-orbits { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; height: 320px; z-index: 5; }
-        
-        /* 轨道环 */
-        .orbit-ring { position: absolute; top: 50%; left: 50%; border: 1px solid; border-radius: 50%; opacity: 0.5; }
-        .orbit-ring-1 { width: 320px; height: 320px; border-color: currentColor; transform: translate(-50%, -50%) rotateX(60deg); animation: orbit-rotate-1 30s linear infinite; }
-        .orbit-ring-2 { width: 280px; height: 280px; border-color: currentColor; transform: translate(-50%, -50%) rotateX(45deg) rotateY(30deg); animation: orbit-rotate-2 25s linear infinite reverse; }
-        
-        .wandering-orb {
-            position: absolute; top: 0; left: 50%; width: 12px; height: 12px; border-radius: 50%; background: currentColor;
-            transform: translate(-50%, -50%); box-shadow: 0 0 15px currentColor, 0 0 30px currentColor; z-index: 30;
-        }
-        .wandering-orb-1 { animation: wandering-orbit-1 8s linear infinite; }
-        .wandering-orb-2 { animation: wandering-orbit-2 6s linear infinite reverse; width: 8px; height: 8px; opacity: 0.8; }
-        
-        .wandering-orbit-path {
-            position: absolute; top: 50%; left: 50%; width: 200px; height: 200px;
-            border: 1px dashed rgba(255,255,255,0.2); border-radius: 50%;
-            transform: translate(-50%, -50%) rotateX(70deg); z-index: 15;
-        }
-        
-        .totem-metadata { position: absolute; bottom: -40px; left: 0; width: 100%; text-align: center; z-index: 40; }
-        
-        /* 动画关键帧 */
-        @keyframes planet-rotate { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
-        @keyframes atmosphere-pulse { 0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.05); } }
-        @keyframes orbit-rotate-1 { 0% { transform: translate(-50%, -50%) rotateX(60deg) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotateX(60deg) rotate(360deg); } }
-        @keyframes orbit-rotate-2 { 0% { transform: translate(-50%, -50%) rotateX(45deg) rotateY(30deg) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotateX(45deg) rotateY(30deg) rotate(360deg); } }
-        @keyframes wandering-orbit-1 { 0% { transform: translate(-50%, -50%) rotate(0deg) translateX(160px) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg) translateX(160px) rotate(-360deg); } }
-        @keyframes wandering-orbit-2 { 0% { transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg); } }
-        
-        .stars { position: absolute; width: 100%; height: 100%; z-index: 1; }
-        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 3s infinite; }
-        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        
-        .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
-        .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.1); }
-        .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; }
-        .section-title { font-size: 1.5rem; font-weight: bold; color: #f1f5f9; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-        .section-subtitle { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; display: block; }
-        .report-content p { margin-bottom: 1rem; line-height: 1.8; text-align: justify; }
-        .report-content strong { color: #e2e8f0; font-weight: bold; }
-        .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
-        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-        .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
-        
-        .chapter7-totem-container { width: 280px !important; height: 280px !important; margin: 2rem auto; }
-        .chapter7-totem-container .planet-core { width: 120px; height: 120px; }
-        .chapter7-totem-container .planet-atmosphere { width: 180px; height: 180px; }
-        .chapter7-totem-container .planet-orbits { width: 240px; height: 240px; }
-        .chapter7-totem-container .orbit-ring-1 { width: 240px; height: 240px; }
-        .chapter7-totem-container .orbit-ring-2 { width: 200px; height: 200px; }
-        .chapter7-totem-container .wandering-orbit-path { width: 140px; height: 140px; }
-        .chapter7-totem-container .element-char { font-size: 3rem; }
-    </style>
+position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30;
+pointer-events: none;
+}
+@@ -126,18 +117,22 @@
 </head>
 <body>
-    <div id="report-app">
+<div id="report-app">
         <!-- 状态一：加载中 -->
-        <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
-            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 正在从云端解密档案...
-        </div>
+<div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
+<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 正在从云端解密档案...
+</div>
 
         <!-- 状态二：错误 -->
-        <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-4">
-            <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-6"></i>
-            <h2 class="text-2xl font-bold mb-2 text-white">报告加载失败</h2>
-            <p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
-        </div>
+<div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-4">
+<i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-6"></i>
+<h2 class="text-2xl font-bold mb-2 text-white">报告加载失败</h2>
+<p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
+</div>
 
         <!-- 状态三：内容展示 -->
-        <template v-else-if="reportData">
+<template v-else-if="reportData">
+            <div class="save-btn" @click="saveAsImage" title="保存为图片"><i class="fa-solid fa-camera"></i></div>
             <!-- 截图提示按钮 -->
             <div class="save-btn" @click="showSaveTip" title="保存档案"><i class="fa-solid fa-camera"></i></div>
-            
-            <div class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
-                <header class="text-center mb-16 fade-in-up">
-                    <div class="totem-container-3d mb-8" id="header-totem"></div>
-                    <div class="space-y-2">
-                        <p class="text-amber-600 text-xs tracking-[0.5em] uppercase">Project Archetype V60 Cloud</p>
-                        <h1 class="text-4xl font-black text-white tracking-widest">{{ reportData.comboName || '五行人格报告' }}</h1>
-                    </div>
-                </header>
 
-                <div class="mb-12 text-center px-8 py-6 bg-slate-900/50 rounded border border-amber-900/30 fade-in-up" style="animation-delay: 0.2s">
-                    <p class="text-amber-500/80 text-xs font-bold uppercase tracking-widest mb-3">Archetype Disguise</p>
-                    <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText || '你的面具与内核的独特配置'"></div>
-                </div>
+<div class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
+<header class="text-center mb-16 fade-in-up">
+@@ -180,7 +175,7 @@
+const container = document.getElementById(containerId);
+if (!container) return;
 
-                <div class="space-y-8" v-if="reportData.sections && reportData.sections.length > 0">
-                    <section v-for="(section, index) in reportData.sections" :key="index" class="report-card fade-in-up" :style="{ animationDelay: ((index + 3) * 0.1) + 's' }">
-                        <div class="section-num">{{ '0' + (index + 1) }}</div>
-                        <div class="section-title">{{ section.title }}</div>
-                        <span class="section-subtitle">{{ section.subtitle }}</span>
-                        <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
-                    </section>
-                </div>
-                
-                <footer class="text-center text-slate-600 text-xs mt-16 pb-8 border-t border-slate-900 pt-8">
-                    <p>&copy; 2025 Source Code Archetype. All Rights Reserved.</p>
-                </footer>
-            </div>
-        </template>
-    </div>
+            // 1. 定义字典 - 金属性改为银白色，字体为金色渐变
+            // 1. 定义字典 - 金改为银白(#f8fafc)防止发灰
+const DICT = {
+metal: { color_hex: '#f8fafc', char: '金', name: '金', glow: 'rgba(248,250,252,0.9)' },
+wood:  { color_hex: '#10b981', char: '木', name: '木', glow: 'rgba(16,185,129,0.7)' },
+@@ -271,15 +266,45 @@
 
-    <script>
-        const { createApp, ref, onMounted, watch, nextTick } = Vue;
-
-        const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
-// --- 核心渲染引擎 (保持不变) ---
-    function render3DTotem(totemData, containerId = 'header-totem', size = 'large') {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-
-        const DICT = {
-            metal: { color_hex: '#f8fafc', char: '金', name: '金', glow: 'rgba(248,250,252,0.9)' },
-            wood:  { color_hex: '#10b981', char: '木', name: '木', glow: 'rgba(16,185,129,0.7)' },
-            water: { color_hex: '#3b82f6', char: '水', name: '水', glow: 'rgba(59,130,246,0.7)' },
-            fire:  { color_hex: '#ef4444', char: '火', name: '火', glow: 'rgba(239,68,68,0.7)' },
-            earth: { color_hex: '#f59e0b', char: '土', name: '土', glow: 'rgba(245,158,11,0.7)' }
-        };
-
-        function safeParse(input, defaultKey) {
-            if (!input) return DICT[defaultKey];
-            if (typeof input === 'string') {
-                const key = input.toLowerCase().trim();
-                return DICT[key] || DICT[defaultKey];
-            }
-            if (typeof input === 'object') {
-                const key = input.element || defaultKey;
-                const dictItem = DICT[key] || DICT[defaultKey];
-                return {
-                    color_hex: input.color_hex || dictItem.color_hex,
-                    char: dictItem.char, 
-                    name: input.name || dictItem.name,
-                    glow: input.glow_color || dictItem.glow
-                };
-            }
-            return DICT[defaultKey];
-        }
-
-        const main = safeParse(totemData.main, 'metal');
-        const second = safeParse(totemData.second, 'wood');
-        const wandering = safeParse(totemData.wandering, 'water');
-        const balanced = { color_hex: '#e2e8f0' }; 
-
-        const s = size === 'large' ? 
-            { c: '360px', p: '160px', a: '240px', o: '320px', io: '280px', wo: '200px', fs: '4.5rem' } :
-            { c: '280px', p: '120px', a: '180px', o: '240px', io: '200px', wo: '140px', fs: '3.5rem' };
-
-        function stars() {
-            let h = '';
-            for(let i=0; i<30; i++) h+=`<div class="star" style="left:${Math.random()*100}%;top:${Math.random()*100}%;width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;animation-delay:${Math.random()*3}s"></div>`;
-            return h;
-        }
-
-        container.innerHTML = `
-            <div class="totem-3d-wrapper" style="width:${s.c};height:${s.c}">
-                <div class="stars">${stars()}</div>
-                <div class="planet-atmosphere" style="width:${s.a};height:${s.a};color:${second.color_hex}"></div>
-                <div class="planet-orbits" style="width:${s.o};height:${s.o}">
-                    <div class="orbit-ring orbit-ring-1" style="width:${s.o};height:${s.o};color:${balanced.color_hex}"></div>
-                    <div class="orbit-ring orbit-ring-2" style="width:${s.io};height:${s.io};color:${balanced.color_hex}"></div>
-                    <div class="wandering-orbit-path" style="width:${s.wo};height:${s.wo};border-color:${wandering.color_hex}"></div>
-                </div>
-                <div class="planet-core" style="width:${s.p};height:${s.p};color:${main.color_hex}"></div>
-                <div class="wandering-orb wandering-orb-1" style="color:${wandering.color_hex}"></div>
-                <div class="wandering-orb wandering-orb-2" style="color:${wandering.color_hex}"></div>
-                <div class="element-char" style="font-size:${s.fs}">${main.char}</div>
-            </div>
-            <div class="totem-metadata">
-                 <div class="text-sm text-slate-400 flex justify-center space-x-4">
-                    <span style="color:${main.color_hex}">● 内核:${main.name}</span>
-                    <span style="color:${second.color_hex}">● 面具:${second.name}</span>
-                    <span style="color:${wandering.color_hex}">● 游离:${wandering.name}</span>
-                 </div>
-            </div>
-        `;
-        
-        if (containerId === 'chapter7-totem-container') container.classList.add('chapter7-totem-container');
-    }
-
-    function renderC7() {
-        const el = document.getElementById('chapter7-totem-container');
-        if (!el) { setTimeout(renderC7, 500); return; }
-        const m = el.dataset.m || 'metal';
-        const s = el.dataset.s || 'wood';
-        const w = el.dataset.w || 'water';
-        render3DTotem({ main: m, second: s, wandering: w }, 'chapter7-totem-container', 'medium');
-        
-        const loading = document.getElementById('totem-loading');
-        if (loading) loading.style.display = 'none';
-    }
-
-    // --- Vue 应用实例 ---
-    createApp({
-        setup() {
-            const isLoading = ref(true);
-            const fetchError = ref('');
-            const reportData = ref(null);
-
-            // 辅助函数：清理 URL 上的敏感参数
-            const cleanUrl = () => {
-                try {
-                    const newUrl = new URL(window.location.href);
-                    // 删除密钥和所有的测试参数，保持地址栏干净
-                    ['code', 'k', 'g', 'm', 's', 'w', 'l'].forEach(key => newUrl.searchParams.delete(key));
-                    window.history.replaceState({}, document.title, newUrl.toString());
-                } catch (e) {
-                    console.error("URL清洗失败", e);
-                }
-            };
-
-            onMounted(async () => {
-                const params = new URLSearchParams(window.location.search);
-                // 获取密钥 (兼容 'code' 和 'k')
-                const userKey = params.get('code') || params.get('k');
-                
-                // 1. 优先读取本地缓存 (防刷新)
-                if (userKey) {
+onMounted(async () => {
+const params = new URLSearchParams(window.location.search);
+                    // 假设 URL 里有 ?k=XXXXXX 或 ?key=XXXXXX
+                    const userKey = params.get('k') || params.get('key');
                     const CACHE_KEY = `archetype_cache_${userKey}`;
-                    const cached = localStorage.getItem(CACHE_KEY);
                     
-                    if (cached) {
-                        try {
-                            console.log("🔥 读取本地缓存，跳过API请求");
-                            reportData.value = JSON.parse(cached);
-                            isLoading.value = false;
-                            cleanUrl(); // 缓存读取成功也清理URL
-                            return; 
-                        } catch (e) {
-                            localStorage.removeItem(CACHE_KEY);
+                    // === 1. 优先读取本地缓存 (防刷新) ===
+                    if (userKey) {
+                        const cached = localStorage.getItem(CACHE_KEY);
+                        if (cached) {
+                            try {
+                                console.log("🔥 读取本地缓存，跳过API请求");
+                                const parsed = JSON.parse(cached);
+                                reportData.value = parsed;
+                                isLoading.value = false;
+                                return; // 直接结束，不请求后端
+                            } catch (e) {
+                                localStorage.removeItem(CACHE_KEY);
+                            }
                         }
                     }
 
-                    // 2. 缓存未命中，准备请求 API
-                    try {
-                        // 构造 POST 请求体
-                        const requestBody = {
-                            code: userKey,
-                            g: params.get('g'),
-                            m: params.get('m'),
-                            s: params.get('s'),
-                            w: params.get('w'),
-                            l: params.get('l')
-                        };
+                    // === 2. 无缓存则请求 API ===
+try {
+const res = await fetch(`${REPORT_FUNCTION_URL}?${params.toString()}`, {
+headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+});
+const data = await res.json();
+                        if (!res.ok) throw new Error(data.message || 'Error');
 
-                        console.log("正在请求后端验证并生成报告...");
-
-                        // ★★★ 修改点：改为 POST 请求 ★★★
-                        const res = await fetch(REPORT_FUNCTION_URL, {
-                            method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}` 
-                            },
-                            body: JSON.stringify(requestBody)
-                        });
-
-                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.message || '报告生成失败');
                         
-                        // 检查后端返回的 success 字段
-                        if (!res.ok || (data.success === false)) {
-                            throw new Error(data.message || '报告生成失败，请检查密钥或重试');
-                        }
-
-                        // 处理数据层级 (兼容后端返回结构)
-                        // 如果你后端直接把 report 放在了 data.report 里，或者直接合并在 data 里
-                        const core = data.report || data.attributes || data; 
+                        // 处理数据层级
+const core = data.attributes || data.meta || data;
+                        reportData.value = { ...data, ...core, sections: data.sections || core.sections };
                         const finalData = { ...data, ...core, sections: data.sections || core.sections };
                         
                         reportData.value = finalData;
-
-                        // 3. 存入缓存
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
                         
-                        // 4. 成功后清理地址栏
-                        cleanUrl();
+                        // === 3. 存入缓存 ===
+                        if (userKey) {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
+                        }
 
-                    } catch (e) {
-                        console.error("API Error:", e);
-                        fetchError.value = e.message;
-                    } finally {
-                        isLoading.value = false;
-                    }
-                } else {
-                    // 如果没有密钥参数，可能是直接访问
-                    const cachedKey = Object.keys(localStorage).find(k => k.startsWith('archetype_cache_'));
-                    if (cachedKey) {
-                        // 尝试恢复上一次的缓存 (可选功能)
-                        try {
-                            reportData.value = JSON.parse(localStorage.getItem(cachedKey));
-                            isLoading.value = false;
-                        } catch(e) {}
-                    } else {
-                        isLoading.value = false;
-                        // 可以选择在这里提示“请先进行测试”
-                    }
-                }
-            });
+} catch (e) {
+fetchError.value = e.message;
+@@ -288,6 +313,7 @@
+}
+});
 
-            // 监听数据变化，触发图腾渲染
-            watch(() => reportData.value, (val) => {
-                if (val) {
-                    nextTick(() => {
-                        const m = val.m || val.main?.element || 'metal';
-                        const s = val.s || val.second?.element || 'wood';
-                        const w = val.w || val.wandering?.element || 'water';
-                        
-                        render3DTotem({ main: m, second: s, wandering: w }, 'header-totem', 'large');
-                        
-                        if (val.sections?.length >= 5) setTimeout(renderC7, 1000);
-                    });
-                }
-            });
+                // 监听数据渲染图腾
+watch(() => reportData.value, (val) => {
+if (val) {
+nextTick(() => {
+@@ -302,13 +328,19 @@
+}
+});
 
-            // 双重保险渲染 C7
-            watch(() => reportData.value?.sections, (secs) => {
-                if (secs?.length >= 5) setTimeout(renderC7, 1500);
-            });
+                // 双重保险渲染 C7
+watch(() => reportData.value?.sections, (secs) => {
+if (secs?.length >= 5) setTimeout(renderC7, 1500);
+});
 
-            // 截图提示函数
-            const showSaveTip = () => {
-                alert("📷 保存方式：\n请直接使用手机【截屏】功能，或长按页面保存。\n这样能获得最高清的灵魂图腾哦！");
-            };
+                return { isLoading, fetchError, reportData, saveAsImage: () => alert('请使用浏览器截图') };
+                // 截图提示函数
+                const showSaveTip = () => {
+                    alert("📷 保存方式：\n请直接使用手机【截屏】功能，或长按页面保存。\n这样能获得最高清的灵魂图腾哦！");
+                };
 
-            return { isLoading, fetchError, reportData, showSaveTip };
-        }
-    }).mount('#report-app');
+                return { isLoading, fetchError, reportData, showSaveTip };
+}
+}).mount('#report-app');
 </script>
 </body>
 </html>
-
-
