@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>本源之格 - 深度潜意识解码</title>
-    
+
     <!-- 1. 谷歌字体国内镜像 (防止卡顿) -->
     <link href="https://fonts.font.im/css2?family=Noto+Serif+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- 2. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -21,11 +21,13 @@
     <style>
         :root { --c-bg: #020617; --c-gold: #d97706; }
         * { font-family: 'Noto Serif SC', serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
         body {
             background-color: var(--c-bg);
             background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 100%);
             color: #e2e8f0; min-height: 100vh; margin: 0; overflow-x: hidden;
         }
+
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
@@ -46,17 +48,14 @@
             z-index: 10;
             pointer-events: none;
         }
-
         .sphere-state-start { top: 50%; transform: translate(-50%, -50%) scale(1.5); pointer-events: auto; cursor: pointer; }
         .sphere-state-quiz { top: 80px; transform: translate(-50%, 0) scale(0.4); }
         .sphere-state-calc { top: 50%; transform: translate(-50%, -50%) scale(1.2); }
-
         .particle-sphere { position: relative; width: 120px; height: 120px; transform-style: preserve-3d; animation: sphere-spin 10s linear infinite; }
         .particle-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; border: 2px dotted rgba(255, 255, 255, 0.3); box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); }
         .core-light { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; box-shadow: 0 0 40px rgba(255, 255, 255, 0.6); top: 50%; left: 50%; transform: translate(-50%, -50%); animation: pulse-white 2s infinite; }
-
         .ring-1 { transform: rotateY(0deg); } .ring-2 { transform: rotateY(60deg); } .ring-3 { transform: rotateY(120deg); } .ring-4 { transform: rotateX(60deg); } .ring-5 { transform: rotateX(120deg); }
-
+        
         @keyframes sphere-spin { 0% { transform: rotateY(0deg) rotateX(0deg); } 100% { transform: rotateY(360deg) rotateX(360deg); } }
         @keyframes pulse-white { 0%,100% { opacity: 0.5; transform: scale(1) translate(-50%, -50%); } 50% { opacity: 1; transform: scale(1.2) translate(-50%, -50%); } }
 
@@ -77,7 +76,7 @@
         .option-item:hover { background: linear-gradient(90deg, rgba(217,119,6,0.1) 0%, rgba(217,119,6,0) 100%); border-left-color: #d97706; padding-left: 1.5rem; }
         .progress-fill { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* 图腾样式 (Result) */
+        /* 图腾样式 */
         .totem-container { position: relative; width: 380px; height: 380px; margin: 0 auto 2rem auto; overflow: visible !important; }
         .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
         .totem-glow-main { width: 250px; height: 250px; border-radius: 50%; filter: blur(25px); opacity: 0.7; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
@@ -91,13 +90,13 @@
         .totem-bg-icon { font-size: 11rem; opacity: 0.5; z-index: 3; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); pointer-events: none; }
         .text-wrapper { z-index: 11; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 120px; height: 120px; }
         .totem-char { font-size: 6rem; font-weight: 900; background-clip: text; -webkit-background-clip: text; color: transparent; text-shadow: 0 5px 30px rgba(0,0,0,1); position: relative; z-index: 11; }
-
+        
         @keyframes breathe-tight { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; } }
         @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.5; } }
         @keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes totem-pop-in-fixed { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } 70% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
         @keyframes planet-fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-
+        
         .seq-item { opacity: 0; will-change: transform, opacity; }
         .animate-seq-1 { animation: totem-pop-in-fixed 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.1s; }
         .animate-seq-2 { animation: totem-pop-in-fixed 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.3s; }
@@ -105,7 +104,7 @@
         .animate-seq-4 { animation: totem-pop-in-fixed 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.7s; }
         .animate-seq-5 { animation: totem-pop-in-fixed 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.9s; }
         .animate-seq-last { animation: planet-fade-in 1.5s ease-out forwards; animation-delay: 1.2s; }
-
+        
         .paywall-blur { position: relative; mask-image: linear-gradient(to bottom, black 0%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%); opacity: 0.5; filter: blur(6px); user-select: none; pointer-events: none; margin-top: 2rem; }
         .stat-bar { display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px; }
         .stat-line-bg { width: 100px; height: 4px; background: #334155; border-radius: 2px; overflow: hidden; }
@@ -113,6 +112,7 @@
     </style>
 </head>
 <body>
+
     <div id="app" class="w-full h-screen flex flex-col items-center relative overflow-y-auto">
 
         <!-- 全局常驻：粒子球 -->
@@ -566,6 +566,7 @@ const generateHookText = (data, g) => {
 </script>
 </body>
 </html>
+
 
 
 
