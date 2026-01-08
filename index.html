@@ -486,63 +486,93 @@
                 };
 
                 const calculateResult = () => {
-                    phase.value = 'calculating';
-                    sphereState.value = 'calc';
-                    
-                    setTimeout(() => {
-                        const scores = { metal: 0, wood: 0, water: 0, fire: 0, earth: 0 };
-                        answers.value.forEach(a => scores[a]++);
-                        
-                        const sortedEntries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-                        
-                        let mainKey = sortedEntries[0][0];
-                        let secondKey = sortedEntries[1] ? sortedEntries[1][0] : (mainKey === 'water' ? 'wood' : 'water');
-                        const mainScore = sortedEntries[0][1];
-                        const secondScore = sortedEntries[1] ? sortedEntries[1][1] : 0;
-                        
-                        let elementDecisionNote = null;
-                        
-                        if (mainScore === secondScore && mainKey !== secondKey) {
-                            const generateCycle = { wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood' };
-                            const controlCycle = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' };
-                            
-                            if (generateCycle[mainKey] === secondKey) {
-                                elementDecisionNote = `${ATTRIBUTES[mainKey].char}生${ATTRIBUTES[secondKey].char}`;
-                            } else if (generateCycle[secondKey] === mainKey) {
-                                elementDecisionNote = `${ATTRIBUTES[secondKey].char}生${ATTRIBUTES[mainKey].char}`;
-                                [mainKey, secondKey] = [secondKey, mainKey];
-                            } else if (controlCycle[mainKey] === secondKey) {
-                                elementDecisionNote = `${ATTRIBUTES[mainKey].char}克${ATTRIBUTES[secondKey].char}`;
-                            } else if (controlCycle[secondKey] === mainKey) {
-                                elementDecisionNote = `${ATTRIBUTES[secondKey].char}克${ATTRIBUTES[mainKey].char}`;
-                                [mainKey, secondKey] = [secondKey, mainKey];
-                            }
-                        }
-                        
-                        const wanderKey = sortedEntries[2] ? sortedEntries[2][0] : (secondKey === 'fire' ? 'earth' : 'fire');
-                        const sortedLow = Object.entries(scores).sort((a, b) => a[1] - b[1]);
-                        const missingKey = sortedLow[0][0];
-                        
-                        const comboName = ADJECTIVES[secondKey] + NOUNS[mainKey] + SUFFIXES[wanderKey];
-                        
-                        resultData.value = {
-                            main: ATTRIBUTES[mainKey],
-                            second: ATTRIBUTES[secondKey],
-                            wandering: ATTRIBUTES[wanderKey],
-                            missing: ATTRIBUTES[missingKey],
-                            missingKey: missingKey,
-                            comboName: comboName,
-                            elementDecisionNote: elementDecisionNote
-                        };
-                        
-                        generatedHookText.value = generateHookText(resultData.value, gender.value);
-                        scarcity.value = (Math.random() * (18.7 - 4.2) + 4.2).toFixed(1);
-                        
-                        phase.value = 'result';
-                        setTimeout(() => { playAnimation.value = true; }, 100);
-                        
-                    }, 2500);
-                };
+    phase.value = 'calculating';
+    sphereState.value = 'calc';
+    
+    setTimeout(() => {
+        const scores = { metal: 0, wood: 0, water: 0, fire: 0, earth: 0 };
+        answers.value.forEach(a => scores[a]++);
+        
+        // 计算总分数用于百分比
+        const totalAnswers = answers.value.length;
+        
+        // 创建分数数组并排序
+        const scoreEntries = Object.entries(scores);
+        
+        // ★★★ 关键修复：确保缺失属性与主、副属性不同 ★★★
+        // 先选择主属性（最高分）
+        scoreEntries.sort((a, b) => b[1] - a[1]);
+        const mainKey = scoreEntries[0][0];
+        
+        // 选择副属性（次高分，且不能是主属性）
+        const secondEntry = scoreEntries.find(entry => entry[0] !== mainKey);
+        const secondKey = secondEntry ? secondEntry[0] : 'wood';
+        
+        // ★★★ 修复：选择缺失属性为最低分，但要排除主属性和副属性 ★★★
+        const remainingEntries = scoreEntries.filter(entry => 
+            entry[0] !== mainKey && entry[0] !== secondKey
+        );
+        
+        // 从剩余属性中找最低分作为缺失属性
+        remainingEntries.sort((a, b) => a[1] - b[1]);
+        const missingKey = remainingEntries[0] ? remainingEntries[0][0] : 'earth';
+        
+        // 选择游走属性（第三高分，且不能是主、副、缺失）
+        const wanderEntries = remainingEntries.filter(entry => 
+            entry[0] !== missingKey
+        );
+        const wanderKey = wanderEntries.length > 0 ? wanderEntries[0][0] : 'fire';
+        
+        // 确保所有属性都不同
+        const allKeys = [mainKey, secondKey, wanderKey, missingKey];
+        const hasDuplicates = new Set(allKeys).size !== allKeys.length;
+        
+        // 如果有重复，重新分配缺失属性
+        let finalMissingKey = missingKey;
+        if (hasDuplicates) {
+            const allElements = ['metal', 'wood', 'water', 'fire', 'earth'];
+            const usedElements = new Set([mainKey, secondKey, wanderKey]);
+            const availableElements = allElements.filter(el => !usedElements.has(el));
+            finalMissingKey = availableElements[0] || 'earth';
+        }
+        
+        const comboName = ADJECTIVES[secondKey] + NOUNS[mainKey] + SUFFIXES[wanderKey];
+        
+        resultData.value = {
+            main: ATTRIBUTES[mainKey],
+            second: ATTRIBUTES[secondKey],
+            wandering: ATTRIBUTES[wanderKey],
+            missing: ATTRIBUTES[finalMissingKey],
+            missingKey: finalMissingKey,
+            comboName: comboName
+        };
+        
+        // 计算百分比（确保合理性）
+        const percentages = {
+            main: Math.round((scores[mainKey] / totalAnswers) * 100),
+            sub: Math.round((scores[secondKey] / totalAnswers) * 100),
+            wander: Math.round((scores[wanderKey] / totalAnswers) * 100),
+            missing: Math.round((scores[finalMissingKey] / totalAnswers) * 100)
+        };
+        
+        // 确保百分比合理（总和不超过100%）
+        const totalPercent = percentages.main + percentages.sub + percentages.wander;
+        if (totalPercent > 100) {
+            // 按比例调整
+            const scale = 100 / totalPercent;
+            percentages.main = Math.round(percentages.main * scale);
+            percentages.sub = Math.round(percentages.sub * scale);
+            percentages.wander = Math.round(percentages.wander * scale);
+        }
+        
+        generatedHookText.value = generateHookText(resultData.value, gender.value);
+        scarcity.value = (Math.random() * (18.7 - 4.2) + 4.2).toFixed(1);
+        
+        phase.value = 'result';
+        setTimeout(() => { playAnimation.value = true; }, 100);
+        
+    }, 2500);
+};
 
                 const generateHookText = (data, g) => {
                     const m = data.main; 
@@ -637,3 +667,4 @@
     </script>
 </body>
 </html>
+
