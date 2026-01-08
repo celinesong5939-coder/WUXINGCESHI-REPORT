@@ -169,7 +169,29 @@
 
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
+window.onload = function() {
+    // 1. 获取当前 URL 参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const secretCode = urlParams.get('code');
 
+    // 这里执行你的核心逻辑，比如用 secretCode 去请求 Supabase 数据
+    if (secretCode) {
+        console.log("正在使用密钥验证:", secretCode);
+        // 执行你的业务逻辑...
+    }
+
+    // 2. 清洗 URL (移除 'code' 参数)
+    // 创建一个新的 URL 对象
+    const newUrl = new URL(window.location.href);
+    // 删除敏感参数
+    newUrl.searchParams.delete('code'); 
+    
+    // 如果你想把其他参数也隐藏，可以继续 delete，或者直接清空
+    // newUrl.search = ""; // 这会清空所有参数
+
+    // 3. 修改浏览器地址栏，不刷新页面
+    window.history.replaceState({}, document.title, newUrl.toString());
+};
         // 核心渲染引擎
         function render3DTotem(totemData, containerId = 'header-totem', size = 'large') {
             const container = document.getElementById(containerId);
@@ -344,3 +366,4 @@
     </script>
 </body>
 </html>
+
