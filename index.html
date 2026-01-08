@@ -292,7 +292,6 @@
         <p class="text-slate-500 text-sm mt-8">技术支持：请确保您的浏览器支持JavaScript</p>
     </div>
 
-    <!-- 使用本地化的Vue加载方案 -->
     <script>
     // 加载Vue的简单方法
     function loadVue() {
@@ -373,7 +372,7 @@
     const NOUNS = { metal: '金', wood: '木', water: '水', fire: '火', earth: '土' };
     const SUFFIXES = { metal: '· 藏锋', wood: '· 归根', water: '· 潜渊', fire: '· 燃魂', earth: '· 镇岳' };
     
-    // 题目数据
+    // 题目数据 - 修复所有引号问题
     const RAW_QUESTIONS = [
         { text: "在全是陌生人的高端社交晚宴上，哪种状态最让你感到自在？", options: [{ text: "静静观察局势，只在必要时与关键人物进行高效沟通。", value: "metal" }, { text: "做一个温和的倾听者，如果有人落单，我会主动释放善意。", value: "wood" }, { text: "像水一样流动，在不同圈子间穿梭，不固定在任何位置。", value: "water" }, { text: "成为话题的中心，用幽默或观点吸引大家的注意力。", value: "fire" }, { text: "找到舒适的角落享受美食，保持内心平静，等待他人靠近。", value: "earth" }] },
         { text: "当朋友遭遇情感背叛，你的第一本能反应是？", options: [{ text: "立刻帮他分析止损方案：有没有经济损失？如何取证？", value: "metal" }, { text: "感同身受地难过，默默陪伴，提供无条件的情感支持。", value: "wood" }, { text: "立刻察觉到其中的猫腻，帮朋友分析对方的心理漏洞。", value: "water" }, { text: "怒火中烧，恨不得冲过去帮朋友出头，宣泄愤怒。", value: "fire" }, { text: "先照顾朋友的身体，递纸巾、做饭，用生活细节治愈。", value: "earth" }] },
@@ -557,9 +556,9 @@
                         hookText += `<br><br><span class="text-amber-500 font-bold">【五行生克判定】</span> 根据五行生克逻辑（${data.elementDecisionNote}），你的主属性判定为<span style="color:${m.color}">${m.char}</span>，副属性为<span style="color:${s.color}">${s.char}</span>。`;
                     }
                     
-                    hookText += `<br><br><span class="font-bold text-white">骨相（OS）：</span> 你的底层逻辑由<span style="color:${m.color}">${m.char}</span>构建。这意味着你天生具有<span class="text-white">${m.nature}</span>的特质。在潜意识深处，你并不是在寻求安慰，而是在寻求一种绝对的秩序。这种能量构成了你人格的"硬度"。`;
+                    hookText += `<br><br><span class="font-bold text-white">骨相（OS）：</span> 你的底层逻辑由<span style="color:${m.color}">${m.char}</span>构建。这意味着你天生具有<span class="text-white">${m.nature}</span>的特质。在潜意识深处，你并不是在寻求安慰，而是在寻求一种绝对的秩序。这种能量构成了你人格的\"硬度\"。`;
                     hookText += `<br><br><span class="font-bold text-white">皮相（Mask）：</span> 然而，为了适应社会，你衍生出了<span style="color:${s.color}">${s.char}</span>作为你的人格面具。这赋予了你必要的社交手段，让你在外人眼中看起来${s.nature.split('、')[0]}。这是一种高明的伪装，保护了你核心的脆弱。`;
-                    hookText += `<br><br><span class="font-bold text-white">致命短板（The Lack）：</span> 当前命盘中最危险的信号，是你能量循环中<span class="text-red-500 font-bold">【缺${l.char}】</span>。这不仅仅是一个性格缺陷，它构成了你人生中反复出现的"诅咒"——你的${l.danger}往往会导致你在关键时刻功亏一篑。`;
+                    hookText += `<br><br><span class="font-bold text-white">致命短板（The Lack）：</span> 当前命盘中最危险的信号，是你能量循环中<span class="text-red-500 font-bold">【缺${l.char}】</span>。这不仅仅是一个性格缺陷，它构成了你人生中反复出现的\"诅咒\"——你的${l.danger}往往会导致你在关键时刻功亏一篑。`;
                     hookText += `<br><br><span class="font-bold text-white">破局关键（Key）：</span> 你真正的爆发点隐藏在游离态的<span style="color:${w.color}">${w.char}</span>之中。如果不激活这股力量，你将永远被困在当前的阶层；一旦解锁，这将是你通往下一阶段的唯一钥匙...`;
                     
                     return hookText;
