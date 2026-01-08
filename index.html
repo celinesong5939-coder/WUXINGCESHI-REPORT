@@ -264,12 +264,12 @@
                 </div> <!-- 对应 class="w-full pt-24..." -->
             </div> <!-- 对应 v-if="phase === 'result'" -->
         </transition>
+<!-- 必须把 Vue 先引进来，下面的代码才能用 -->
+<script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/vue/3.2.47/vue.global.min.js"></script>
 
-<script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/vue/3.2.47/vue.global.min.js">
-    
-</script>
-  <script>
-    const { createApp, ref, computed } = Vue;
+<script> <!-- 这是你原本的 script 标签 -->
+    const { createApp, ref, computed } = Vue; // 现在 Vue 就在上面，不会报错了
+    // ...
 
     // ★★★ 修正：我们不再需要在这里定义 OWNER_CODE，因为验证在后端完成 ★★★
 
@@ -569,6 +569,7 @@ const generateHookText = (data, g) => {
 </script>
 </body>
 </html>
+
 
 
 
