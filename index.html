@@ -4,12 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>本源之格 - 深度潜意识解码</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- 1. 谷歌字体国内镜像 (防止卡顿) -->
+    <link href="https://fonts.font.im/css2?family=Noto+Serif+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 2. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-<!-- ★★★ 第1步：在这里添加 Supabase 库 ★★★ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- 3. ★★★ 核心修复：Vue 3 国内高速源 ★★★ -->
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/vue/3.2.47/vue.global.min.js"></script>
+
+    <!-- 4. Supabase (如有问题可尝试更换网络，但在国内 unpkg 相对 jsdelivr 有时更稳) -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <style>
         :root { --c-bg: #020617; --c-gold: #d97706; }
@@ -39,6 +46,7 @@
             z-index: 10;
             pointer-events: none;
         }
+
         .sphere-state-start { top: 50%; transform: translate(-50%, -50%) scale(1.5); pointer-events: auto; cursor: pointer; }
         .sphere-state-quiz { top: 80px; transform: translate(-50%, 0) scale(0.4); }
         .sphere-state-calc { top: 50%; transform: translate(-50%, -50%) scale(1.2); }
@@ -558,5 +566,6 @@ const generateHookText = (data, g) => {
 </script>
 </body>
 </html>
+
 
 
