@@ -374,8 +374,9 @@
                 }
             };
 const calculateResult = () => {
-    phase.value = 'calculating';
-    sphereState.value = 'calc';
+    // 1. 切换到计算状态
+    phase.value = 'calculating';     // 注意：这里没有圆括号
+    sphereState.value = 'calc';      // 注意：这里也没有圆括号
     
     setTimeout(() => {
         // 1. 计算各属性得分
@@ -566,6 +567,7 @@ const generateHookText = (data, g) => {
 </script>
 </body>
 </html>
+
 
 
 
