@@ -8,6 +8,7 @@
     <!-- 资源引入 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入 html2canvas -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -57,9 +58,11 @@
         .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
         
-        /* ================= 交互按钮 ================= */
+        /* ================= 交互按钮 (保存按钮) ================= */
         .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
         .save-btn:active { transform: scale(0.9); }
+        /* 截图时隐藏按钮 */
+        .hide-on-capture .save-btn { display: none !important; }
         
         /* ================= 章节7 小图腾适配 ================= */
         .chapter7-totem-container { width: 240px !important; height: 240px !important; margin: 2rem auto; }
@@ -69,16 +72,40 @@
         .chapter7-totem-container .totem-char { font-size: 3rem; }
         .chapter7-totem-container .totem-bg-icon { font-size: 5rem; }
 
-        /* ================= 模态框 (仅用于卡片保存展示) ================= */
+        /* ================= 隐藏画布 (用于卡片生成) ================= */
+        #offscreen-canvas-area {
+            position: fixed; top: 0; left: -9999px; width: 600px; height: 800px; z-index: -1;
+            background-color: #020617; 
+            background-image: radial-gradient(circle at 50% 20%, #1e293b 0%, #020617 80%);
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 0; box-sizing: border-box; font-family: 'Noto Serif SC', serif;
+        }
+        /* 这里的样式复用后端生成的HTML类名，确保一致性 */
+        .share-card-border { width: 100%; height: 100%; border: 2px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; position: relative; padding: 40px 30px; }
+        .share-card-header { text-align: center; width: 100%; }
+        .share-card-subtitle { font-size: 0.9rem; color: #d97706; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 5px; display: block; }
+        .share-card-title { font-size: 2.8rem; font-weight: 900; color: #fff; letter-spacing: 0.1em; line-height: 1.2; margin: 0; }
+        .archetype-grid { display: flex; justify-content: space-between; width: 100%; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+        .grid-item { text-align: center; flex: 1; }
+        .grid-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; display: block; }
+        .grid-value { font-size: 1.4rem; font-weight: bold; }
+        .share-desc-box { text-align: center; margin-top: 20px; padding: 15px; background: rgba(15,23,42,0.5); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); width: 100%; }
+        .share-desc-text { color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin: 0; min-height: 3em; }
+        .share-card-footer { margin-top: auto; width: 100%; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .share-qr-text { font-size: 0.75rem; color: #64748b; text-align: left; line-height: 1.4; }
+        .share-logo { font-weight: 900; font-size: 1rem; color: #475569; letter-spacing: 0.1em; }
+
+        /* ================= 模态框 (结果展示) ================= */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .modal-content { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
         .close-modal { margin-top: 15px; padding: 8px 20px; background: transparent; color: #94a3b8; border: none; font-size: 0.9rem; cursor: pointer; }
+        /* 图片展示容器，允许滚动 */
         .result-img-container { max-height: 70vh; overflow-y: auto; margin-bottom: 10px; border-radius: 4px; border: 1px solid #334155; }
         .result-img-container img { width: 100%; height: auto; display: block; }
 
     </style>
 </head>
-<body>
+<body :class="{ 'hide-on-capture': isGenerating }">
     <div id="report-app">
         <!-- 状态一：加载中 -->
         <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
@@ -94,29 +121,30 @@
 
         <!-- 状态三：内容展示 -->
         <template v-else-if="reportData">
-            <!-- 1. 全局保存按钮 (回归手动截图提示) -->
-            <div class="save-btn" @click="showSaveTip" title="保存档案"><i class="fa-solid fa-camera"></i></div>
+            <!-- 1. 全局保存按钮 (现在是真正的生成长图功能) -->
+            <div class="save-btn" @click="generateLongReport" title="保存完整报告"><i class="fa-solid fa-camera"></i></div>
             
-            <div class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
+            <!-- 主报告区域 (ID: main-report-content) -->
+            <div id="main-report-content" class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
                 <header class="text-center mb-16 fade-in-up">
                     <!-- 圆环图腾容器 -->
                     <div class="mb-8" id="header-totem"></div>
 
-                    <!-- 🔥【新增】索引小卡片板块 -->
-                    <!-- 只有当后端返回了 summaryCardHTML 时才显示 -->
-                    <div v-if="reportData.summaryCardHTML" class="mb-12 mx-auto max-w-sm relative group">
+                    <!-- 🔥 索引小卡片板块 -->
+                    <div v-if="reportData.summaryCardHTML" class="mb-12 mx-auto max-w-md relative group">
                         
-                        <!-- 2. 卡片内容 (由后端生成 HTML) -->
+                        <!-- 2. 卡片内容 (后端生成) -->
                         <div id="summary-card-wrapper" v-html="reportData.summaryCardHTML"></div>
 
-                        <!-- 3. 独立保存按钮 (悬浮在卡片右上角) -->
-                        <div @click="saveIndexCard" 
+                        <!-- 3. 卡片独立保存按钮 (截图时不显示) -->
+                        <div @click.stop="saveIndexCard" 
                              class="absolute -top-3 -right-3 w-8 h-8 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-amber-600 hover:border-amber-500 hover:text-white transition-all duration-300 z-10 text-slate-400"
+                             :class="{ 'hidden': isGenerating }"
                              title="单独保存此卡片">
                             <i class="fa-solid fa-download text-xs"></i>
                         </div>
                         
-                        <!-- 装饰：连接线 -->
+                        <!-- 装饰线 -->
                         <div class="absolute left-1/2 -top-4 w-px h-4 bg-gradient-to-b from-transparent to-slate-700 -translate-x-1/2"></div>
                     </div>
 
@@ -127,7 +155,7 @@
                     </div>
                 </header>
 
-                <!-- 诱导文案 (Disguise) -->
+                <!-- 诱导文案 -->
                 <div class="mb-12 text-center px-8 py-6 bg-slate-900/50 rounded border border-amber-900/30 fade-in-up" style="animation-delay: 0.2s">
                     <p class="text-amber-500/80 text-xs font-bold uppercase tracking-widest mb-3">Archetype Disguise</p>
                     <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText || '你的面具与内核的独特配置'"></div>
@@ -139,7 +167,7 @@
                         <div class="section-num">{{ '0' + (index + 1) }}</div>
                         <div class="section-title">{{ section.title }}</div>
                         <span class="section-subtitle">{{ section.subtitle }}</span>
-                        <!-- 职业红黑榜等内容都包含在 section.content 里 -->
+                        <!-- 内容 (包含职业红黑榜) -->
                         <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
                     </section>
                 </div>
@@ -149,17 +177,53 @@
                 </footer>
             </div>
 
-            <!-- 结果展示弹窗 (仅服务于小卡片保存) -->
+            <!-- 隐藏的 3:4 分享卡片 (用于单独保存) -->
+            <div id="offscreen-canvas-area">
+                <div class="share-card-border">
+                    <div class="share-card-header">
+                        <span class="share-card-subtitle">ARCHETYPE IDENTITY</span>
+                        <h1 class="share-card-title">{{ reportData.comboName || '五行人格' }}</h1>
+                    </div>
+                    <!-- 分享卡图腾位 -->
+                    <div id="share-totem-placeholder" style="margin: 10px 0;"></div>
+                    
+                    <div class="archetype-grid">
+                        <div class="grid-item">
+                            <span class="grid-label">CORE / 内核</span>
+                            <div class="grid-value" :style="{color: getElementColor(flatData.main)}">{{ getElementName(flatData.main) }}</div>
+                        </div>
+                        <div class="grid-item">
+                            <span class="grid-label">MASK / 面具</span>
+                            <div class="grid-value" :style="{color: getElementColor(flatData.second)}">{{ getElementName(flatData.second) }}</div>
+                        </div>
+                        <div class="grid-item">
+                            <span class="grid-label">WANDERING / 游离</span>
+                            <div class="grid-value" :style="{color: getElementColor(flatData.wandering)}">{{ getElementName(flatData.wandering) }}</div>
+                        </div>
+                    </div>
+                    <div class="share-desc-box">
+                        <p class="share-desc-text">
+                            {{ (reportData.hookText || '暂无描述').replace(/<[^>]+>/g, '').substring(0, 60) }}...
+                        </p>
+                    </div>
+                    <div class="share-card-footer">
+                        <div class="share-qr-text">Source Code Archetype<br>Cloud Edition V60</div>
+                        <div class="share-logo">SC:A</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 结果展示弹窗 (长按保存) -->
             <div v-if="showResult" class="modal-overlay" @click.self="closeResult">
                 <div class="modal-content fade-in-up" style="width: 95%; max-width: 500px; padding: 15px;">
                     <div v-if="isGenerating" class="py-12">
                         <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500 mb-4"></i>
-                        <p class="text-slate-400">正在生成卡片...</p>
+                        <p class="text-slate-400">正在渲染全息影像...</p>
                     </div>
                     <div v-else>
-                        <p class="text-amber-500 text-sm mb-3 font-bold">长按图片保存到相册</p>
+                        <p class="text-amber-500 text-sm mb-3 font-bold">长按下方图片保存</p>
                         <div class="result-img-container">
-                            <img :src="generatedImage" alt="Index Card">
+                            <img :src="generatedImage" alt="Report Image">
                         </div>
                         <button class="close-modal" @click="closeResult">关闭</button>
                     </div>
@@ -184,12 +248,11 @@
             earth: { color: '#d97706', name: '土', icon: 'fa-cubes' }
         };
 
-        // ================== 核心：圆环渲染引擎 (Ring Render Engine) ==================
+        // 圆环渲染引擎
         function renderRingTotem(totemData, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            // 1. 强力数据清洗
             function normalize(input) {
                 if (!input) return 'metal';
                 let str = (typeof input === 'object' && input.element) ? input.element : input;
@@ -209,19 +272,10 @@
             const main = ELEM_DICT[mKey];
             const second = ELEM_DICT[sKey];
             const wandering = ELEM_DICT[wKey];
-
-            // 2. 设定黄金比例
             const p = { m: 45, s: 35 }; 
-
-            // 3. 动态构建样式
-            const conicStyle = `conic-gradient(
-                ${main.color} 0% ${p.m}%, 
-                ${second.color} ${p.m}% ${p.m + p.s}%, 
-                ${wandering.color} ${p.m + p.s}% 100%
-            )`;
+            const conicStyle = `conic-gradient(${main.color} 0% ${p.m}%, ${second.color} ${p.m}% ${p.m + p.s}%, ${wandering.color} ${p.m + p.s}% 100%)`;
             const textStyle = `linear-gradient(180deg, #fff 20%, ${main.color} 100%)`;
 
-            // 4. 注入 HTML
             container.innerHTML = `
                 <div class="totem-container${containerId === 'chapter7-totem-container' ? ' chapter7-totem-container' : ''}">
                     <div class="totem-glow-sub abs-center" style="background-color: ${second.color}"></div>
@@ -243,7 +297,7 @@
             if (containerId === 'chapter7-totem-container') container.classList.add('chapter7-totem-container');
         }
 
-        // C7 渲染适配器
+        // C7 渲染
         function renderC7() {
             const el = document.getElementById('chapter7-totem-container');
             if (!el) { setTimeout(renderC7, 500); return; }
@@ -255,16 +309,13 @@
                 const isLoading = ref(true);
                 const fetchError = ref('');
                 const reportData = ref(null);
-                
-                // 状态控制
+                const flatData = ref({ main: 'metal', second: 'wood', wandering: 'water' });
                 const showResult = ref(false);
                 const isGenerating = ref(false);
                 const generatedImage = ref('');
 
                 onMounted(async () => {
                     const params = new URLSearchParams(window.location.search);
-                    
-                    // === 1. 密钥持久化逻辑 ===
                     let userKey = params.get('k') || params.get('key') || params.get('code');
                     
                     if (userKey) {
@@ -284,15 +335,14 @@
                         return;
                     }
 
-                    // === 2. 数据获取逻辑 ===
                     const CACHE_KEY = `archetype_cache_${userKey}`;
-                    
                     const cached = localStorage.getItem(CACHE_KEY);
                     if (cached) {
                         try {
-                            reportData.value = JSON.parse(cached);
+                            const parsed = JSON.parse(cached);
+                            reportData.value = parsed;
+                            processFlatData(parsed);
                             isLoading.value = false;
-                            console.log("已从本地缓存加载报告");
                             return; 
                         } catch (e) { localStorage.removeItem(CACHE_KEY); }
                     }
@@ -307,7 +357,7 @@
                         const core = data.attributes || data.meta || data;
                         const finalData = { ...data, ...core, sections: data.sections || core.sections };
                         reportData.value = finalData;
-                        
+                        processFlatData(finalData);
                         localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
                     } catch (e) {
                         fetchError.value = e.message;
@@ -316,56 +366,79 @@
                     }
                 });
 
-                // 监听数据渲染图腾
+                function processFlatData(data) {
+                    const getE = (src, key) => {
+                        if (src[key]) return typeof src[key] === 'string' ? src[key] : src[key].element;
+                        if (src.attributes && src.attributes[key]) return typeof src.attributes[key] === 'string' ? src.attributes[key] : src.attributes[key].element;
+                        if (src.main && key === 'main') return src.main.element; 
+                        return null;
+                    };
+                    flatData.value.main = data.m || getE(data, 'main') || 'metal';
+                    flatData.value.second = data.s || getE(data, 'second') || 'wood';
+                    flatData.value.wandering = data.w || getE(data, 'wandering') || 'water';
+                }
+
                 watch(() => reportData.value, (val) => {
                     if (val) {
                         nextTick(() => {
-                            // 渲染顶部图腾
-                            renderRingTotem({ main: val.m, second: val.s, wandering: val.w }, 'header-totem');
-                            
-                            // 尝试渲染 C7 图腾
+                            renderRingTotem(flatData.value, 'header-totem');
+                            renderRingTotem(flatData.value, 'share-totem-placeholder');
                             if (val.sections?.length >= 5) setTimeout(renderC7, 1000);
                         });
                     }
                 });
-                
-                // 双重保险渲染
                 watch(() => reportData.value?.sections, (secs) => {
                     if (secs?.length >= 5) setTimeout(renderC7, 1500);
                 });
 
-                // === 交互功能 ===
-                
-                // 1. 全局保存提示
-                const showSaveTip = () => {
-                    alert("📷 保存方式：\n请直接使用手机【截屏】功能，或长按页面保存。\n这样能获得最高清的灵魂图腾哦！");
-                };
+                const getElementColor = (key) => ELEM_DICT[key?.toLowerCase()]?.color || '#cbd5e1';
+                const getElementName = (key) => ELEM_DICT[key?.toLowerCase()]?.name || key;
 
-                // 2. 独立卡片保存 (自动生成)
+                // 2. 独立卡片保存
                 const saveIndexCard = () => {
-                    // 注意：这里的 ID 必须对应后端生成的 HTML 里的 ID
-                    const el = document.getElementById('summary-card-content'); 
-                    if (!el) {
-                        alert('卡片尚未加载完成，请稍后再试');
-                        return;
-                    }
-
+                    const el = document.getElementById('summary-card-content'); // 注意：这是后端HTML里div的ID
+                    if (!el) return;
                     showResult.value = true;
                     isGenerating.value = true;
-
-                    html2canvas(el, {
-                        backgroundColor: null, // 保持后端设定的半透明背景
-                        scale: 3, // 高清
-                        useCORS: true,
-                        logging: false
-                    }).then(canvas => {
+                    html2canvas(el, { backgroundColor: null, scale: 3, useCORS: true }).then(canvas => {
                         generatedImage.value = canvas.toDataURL("image/png");
                         isGenerating.value = false;
                     }).catch(err => {
-                        console.error(err);
-                        alert('生成失败，请手动截屏');
-                        showResult.value = false;
+                        alert('生成失败'); showResult.value = false;
                     });
+                };
+
+                // 3. 生成长图 (真正实现全页截图)
+                const generateLongReport = () => {
+                    const el = document.getElementById('main-report-content');
+                    if (!el) return;
+                    
+                    showResult.value = true;
+                    isGenerating.value = true;
+                    
+                    // 强制滚动到顶部，确保不裁切
+                    window.scrollTo(0, 0);
+
+                    // 使用延时确保 DOM 渲染就绪
+                    setTimeout(() => {
+                        const fullHeight = el.scrollHeight;
+                        html2canvas(el, {
+                            backgroundColor: '#020617', // 背景色
+                            scale: 1.5, // 移动端推荐倍率，防止内存溢出
+                            useCORS: true,
+                            height: fullHeight,
+                            windowHeight: fullHeight,
+                            y: 0,
+                            scrollY: 0
+                        }).then(canvas => {
+                            generatedImage.value = canvas.toDataURL("image/jpeg", 0.85); // 使用JPEG减小体积
+                            isGenerating.value = false;
+                        }).catch(err => {
+                            console.error(err);
+                            alert('生成失败，可能是内容太长，建议分段截图。');
+                            showResult.value = false;
+                        });
+                    }, 500);
                 };
 
                 const closeResult = () => {
@@ -374,9 +447,10 @@
                 };
 
                 return { 
-                    isLoading, fetchError, reportData, 
-                    showSaveTip, saveIndexCard,
-                    showResult, isGenerating, generatedImage, closeResult
+                    isLoading, fetchError, reportData, flatData,
+                    saveIndexCard, generateLongReport,
+                    showResult, isGenerating, generatedImage, closeResult,
+                    getElementColor, getElementName
                 };
             }
         }).mount('#report-app');
