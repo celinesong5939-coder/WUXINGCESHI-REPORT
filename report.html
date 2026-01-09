@@ -8,6 +8,7 @@
     <!-- 资源引入 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
@@ -24,41 +25,23 @@
         }
         
         /* ================= 核心图腾样式 (Ring Engine) ================= */
-        /* 容器锁死，防止偏移 */
-        .totem-container { 
-            position: relative !important; 
-            width: 320px; 
-            height: 320px; 
-            margin: 0 auto; 
-            overflow: visible !important; 
-        }
-        /* 绝对居中锚点 */
-        .abs-center { 
-            position: absolute; 
-            left: 50%; 
-            top: 50%; 
-            transform: translate(-50%, -50%); 
-        }
+        .totem-container { position: relative !important; width: 320px; height: 320px; margin: 0 auto; overflow: visible !important; }
+        .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
         
-        /* 呼吸光晕 */
         .totem-glow-main { width: 200px; height: 200px; border-radius: 50%; filter: blur(25px); opacity: 0.6; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
         .totem-glow-sub { width: 280px; height: 280px; border-radius: 50%; filter: blur(40px); opacity: 0.2; z-index: 1; animation: breathe-soft 6s ease-in-out infinite; }
         
-        /* 机械圆环 */
         .totem-outer-ring { width: 220px; height: 220px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(0,0,0,0.5) inset; z-index: 5; }
         .totem-inner-ring { width: 200px; height: 200px; border-radius: 50%; mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); opacity: 1; z-index: 4; }
         .totem-ring-overlay { width: 200px; height: 200px; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 3px 3px 6px rgba(255,255,255,0.2), inset -3px -3px 6px rgba(0,0,0,0.6), 3px 3px 10px rgba(0,0,0,0.5); mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); }
         
-        /* 轨道系统 */
         .totem-orbit-wrapper { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 280px; height: 280px; z-index: 100; pointer-events: none; }
         .totem-orbit-inner { width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); animation: orbit-spin 12s linear infinite; }
         .totem-planet { position: absolute; top: 50%; right: -6px; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 15px currentColor, 0 0 30px currentColor; }
         
-        /* 背景与文字 */
         .totem-bg-icon { font-size: 8rem; opacity: 0.3; z-index: 3; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); pointer-events: none; }
         .totem-char { font-size: 4.5rem; font-weight: 900; background-clip: text; -webkit-background-clip: text; color: transparent; text-shadow: 0 5px 30px rgba(0,0,0,0.8); position: relative; z-index: 11; font-family: 'Noto Serif SC', serif; }
 
-        /* 动画关键帧 */
         @keyframes breathe-tight { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; } }
         @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.1; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.3; } }
         @keyframes orbit-spin { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(0, 0) rotate(360deg); } }
@@ -78,7 +61,7 @@
         .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
         .save-btn:active { transform: scale(0.9); }
         
-        /* ================= 章节点缀图腾适配 ================= */
+        /* ================= 章节7 小图腾适配 ================= */
         .chapter7-totem-container { width: 240px !important; height: 240px !important; margin: 2rem auto; }
         .chapter7-totem-container .totem-outer-ring { width: 180px; height: 180px; }
         .chapter7-totem-container .totem-inner-ring, .chapter7-totem-container .totem-ring-overlay { width: 160px; height: 160px; }
@@ -86,47 +69,77 @@
         .chapter7-totem-container .totem-char { font-size: 3rem; }
         .chapter7-totem-container .totem-bg-icon { font-size: 5rem; }
 
+        /* ================= 模态框 (仅用于卡片保存展示) ================= */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .modal-content { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+        .close-modal { margin-top: 15px; padding: 8px 20px; background: transparent; color: #94a3b8; border: none; font-size: 0.9rem; cursor: pointer; }
+        .result-img-container { max-height: 70vh; overflow-y: auto; margin-bottom: 10px; border-radius: 4px; border: 1px solid #334155; }
+        .result-img-container img { width: 100%; height: auto; display: block; }
+
     </style>
 </head>
 <body>
     <div id="report-app">
-        <!-- Loading -->
+        <!-- 状态一：加载中 -->
         <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
             <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 正在从云端解密档案...
         </div>
 
-        <!-- Error -->
+        <!-- 状态二：错误 -->
         <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-4">
             <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-6"></i>
             <h2 class="text-2xl font-bold mb-2 text-white">报告加载失败</h2>
             <p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
         </div>
 
-        <!-- Content -->
+        <!-- 状态三：内容展示 -->
         <template v-else-if="reportData">
-            <!-- 按钮回归：手动保存提示 -->
+            <!-- 1. 全局保存按钮 (回归手动截图提示) -->
             <div class="save-btn" @click="showSaveTip" title="保存档案"><i class="fa-solid fa-camera"></i></div>
             
             <div class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
                 <header class="text-center mb-16 fade-in-up">
                     <!-- 圆环图腾容器 -->
                     <div class="mb-8" id="header-totem"></div>
+
+                    <!-- 🔥【新增】索引小卡片板块 -->
+                    <!-- 只有当后端返回了 summaryCardHTML 时才显示 -->
+                    <div v-if="reportData.summaryCardHTML" class="mb-12 mx-auto max-w-sm relative group">
+                        
+                        <!-- 2. 卡片内容 (由后端生成 HTML) -->
+                        <div id="summary-card-wrapper" v-html="reportData.summaryCardHTML"></div>
+
+                        <!-- 3. 独立保存按钮 (悬浮在卡片右上角) -->
+                        <div @click="saveIndexCard" 
+                             class="absolute -top-3 -right-3 w-8 h-8 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-amber-600 hover:border-amber-500 hover:text-white transition-all duration-300 z-10 text-slate-400"
+                             title="单独保存此卡片">
+                            <i class="fa-solid fa-download text-xs"></i>
+                        </div>
+                        
+                        <!-- 装饰：连接线 -->
+                        <div class="absolute left-1/2 -top-4 w-px h-4 bg-gradient-to-b from-transparent to-slate-700 -translate-x-1/2"></div>
+                    </div>
+
+                    <!-- 标题 -->
                     <div class="space-y-2">
                         <p class="text-amber-600 text-xs tracking-[0.5em] uppercase">Project Archetype V60 Cloud</p>
                         <h1 class="text-4xl font-black text-white tracking-widest">{{ reportData.comboName || '五行人格报告' }}</h1>
                     </div>
                 </header>
 
+                <!-- 诱导文案 (Disguise) -->
                 <div class="mb-12 text-center px-8 py-6 bg-slate-900/50 rounded border border-amber-900/30 fade-in-up" style="animation-delay: 0.2s">
                     <p class="text-amber-500/80 text-xs font-bold uppercase tracking-widest mb-3">Archetype Disguise</p>
                     <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText || '你的面具与内核的独特配置'"></div>
                 </div>
 
+                <!-- 章节循环 -->
                 <div class="space-y-8" v-if="reportData.sections && reportData.sections.length > 0">
                     <section v-for="(section, index) in reportData.sections" :key="index" class="report-card fade-in-up" :style="{ animationDelay: ((index + 3) * 0.1) + 's' }">
                         <div class="section-num">{{ '0' + (index + 1) }}</div>
                         <div class="section-title">{{ section.title }}</div>
                         <span class="section-subtitle">{{ section.subtitle }}</span>
+                        <!-- 职业红黑榜等内容都包含在 section.content 里 -->
                         <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
                     </section>
                 </div>
@@ -135,6 +148,24 @@
                     <p>&copy; 2025 Source Code Archetype. All Rights Reserved.</p>
                 </footer>
             </div>
+
+            <!-- 结果展示弹窗 (仅服务于小卡片保存) -->
+            <div v-if="showResult" class="modal-overlay" @click.self="closeResult">
+                <div class="modal-content fade-in-up" style="width: 95%; max-width: 500px; padding: 15px;">
+                    <div v-if="isGenerating" class="py-12">
+                        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500 mb-4"></i>
+                        <p class="text-slate-400">正在生成卡片...</p>
+                    </div>
+                    <div v-else>
+                        <p class="text-amber-500 text-sm mb-3 font-bold">长按图片保存到相册</p>
+                        <div class="result-img-container">
+                            <img :src="generatedImage" alt="Index Card">
+                        </div>
+                        <button class="close-modal" @click="closeResult">关闭</button>
+                    </div>
+                </div>
+            </div>
+
         </template>
     </div>
 
@@ -158,12 +189,11 @@
             const container = document.getElementById(containerId);
             if (!container) return;
 
-            // 1. 强力数据清洗：不管后端传什么，都转为标准 key
+            // 1. 强力数据清洗
             function normalize(input) {
                 if (!input) return 'metal';
                 let str = (typeof input === 'object' && input.element) ? input.element : input;
                 str = String(str).toLowerCase().trim();
-                
                 if (str.includes('金') || str === 'metal') return 'metal';
                 if (str.includes('木') || str === 'wood') return 'wood';
                 if (str.includes('水') || str === 'water') return 'water';
@@ -180,42 +210,36 @@
             const second = ELEM_DICT[sKey];
             const wandering = ELEM_DICT[wKey];
 
-            // 2. 设定黄金比例 (45/35/20) 保证视觉美感
+            // 2. 设定黄金比例
             const p = { m: 45, s: 35 }; 
 
-            // 3. 动态构建渐变色
+            // 3. 动态构建样式
             const conicStyle = `conic-gradient(
                 ${main.color} 0% ${p.m}%, 
                 ${second.color} ${p.m}% ${p.m + p.s}%, 
                 ${wandering.color} ${p.m + p.s}% 100%
             )`;
-
             const textStyle = `linear-gradient(180deg, #fff 20%, ${main.color} 100%)`;
 
-            // 4. 注入 HTML (注意：这里使用 inline style 确保样式绝对稳定)
+            // 4. 注入 HTML
             container.innerHTML = `
                 <div class="totem-container${containerId === 'chapter7-totem-container' ? ' chapter7-totem-container' : ''}">
                     <div class="totem-glow-sub abs-center" style="background-color: ${second.color}"></div>
                     <div class="totem-glow-main abs-center" style="background-color: ${main.color}"></div>
-                    
                     <div class="totem-outer-ring abs-center" style="border-color: ${main.color}"></div>
                     <div class="totem-inner-ring abs-center" style="background: ${conicStyle}"></div>
                     <div class="totem-ring-overlay abs-center"></div>
-                    
                     <i class="fa-solid ${main.icon} totem-bg-icon abs-center" style="color: ${main.color}"></i>
-                    
                     <div class="totem-orbit-wrapper abs-center">
                         <div class="totem-orbit-inner">
                             <div class="totem-planet" style="color: ${wandering.color}; background-color: ${wandering.color}"></div>
                         </div>
                     </div>
-                    
                     <div class="abs-center" style="z-index: 20;">
                         <div class="totem-char" style="background-image: ${textStyle}; -webkit-background-clip: text;">${main.name}</div>
                     </div>
                 </div>
             `;
-            
             if (containerId === 'chapter7-totem-container') container.classList.add('chapter7-totem-container');
         }
 
@@ -231,57 +255,48 @@
                 const isLoading = ref(true);
                 const fetchError = ref('');
                 const reportData = ref(null);
-                const flatData = ref({ main: 'metal', second: 'wood', wandering: 'water' });
+                
+                // 状态控制
+                const showResult = ref(false);
+                const isGenerating = ref(false);
+                const generatedImage = ref('');
 
                 onMounted(async () => {
                     const params = new URLSearchParams(window.location.search);
                     
-                    // ==========================================
-                    // 🚀 核心逻辑：密钥持久化 (刷新不丢失)
-                    // ==========================================
-                    
-                    // 1. 尝试从 URL 获取密钥
+                    // === 1. 密钥持久化逻辑 ===
                     let userKey = params.get('k') || params.get('key') || params.get('code');
                     
-                    // 2. 如果 URL 里有密钥，赶紧存起来
                     if (userKey) {
                         localStorage.setItem('archetype_current_key', userKey);
-                        
-                        // 3. 存完之后，清洗 URL (美观)
                         const newUrl = new URL(window.location.href);
                         newUrl.searchParams.delete('k');
                         newUrl.searchParams.delete('key');
                         newUrl.searchParams.delete('code');
                         window.history.replaceState({}, document.title, newUrl.toString());
-                    } 
-                    // 4. 如果 URL 里没密钥，从本地缓存找回
-                    else {
+                    } else {
                         userKey = localStorage.getItem('archetype_current_key');
                     }
 
-                    // 5. 如果还是没有 Key，报错
                     if (!userKey) {
                         fetchError.value = "未检测到有效密钥，请重新从测试结果页进入。";
                         isLoading.value = false;
                         return;
                     }
 
+                    // === 2. 数据获取逻辑 ===
                     const CACHE_KEY = `archetype_cache_${userKey}`;
                     
-                    // 优先读缓存 (防刷新时重复请求)
                     const cached = localStorage.getItem(CACHE_KEY);
                     if (cached) {
                         try {
-                            const parsed = JSON.parse(cached);
-                            reportData.value = parsed;
-                            processFlatData(parsed);
+                            reportData.value = JSON.parse(cached);
                             isLoading.value = false;
                             console.log("已从本地缓存加载报告");
                             return; 
                         } catch (e) { localStorage.removeItem(CACHE_KEY); }
                     }
 
-                    // 缓存没有，再请求 API
                     try {
                         const res = await fetch(`${REPORT_FUNCTION_URL}?code=${userKey}`, {
                             headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
@@ -292,11 +307,8 @@
                         const core = data.attributes || data.meta || data;
                         const finalData = { ...data, ...core, sections: data.sections || core.sections };
                         reportData.value = finalData;
-                        processFlatData(finalData);
                         
-                        // 存入缓存
                         localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
-                        
                     } catch (e) {
                         fetchError.value = e.message;
                     } finally {
@@ -304,42 +316,67 @@
                     }
                 });
 
-                function processFlatData(data) {
-                    const getE = (src, key) => {
-                        if (src[key]) return typeof src[key] === 'string' ? src[key] : src[key].element;
-                        if (src.attributes && src.attributes[key]) return typeof src.attributes[key] === 'string' ? src.attributes[key] : src.attributes[key].element;
-                        if (src.main && key === 'main') return src.main.element; 
-                        return null;
-                    };
-                    flatData.value.main = data.m || getE(data, 'main') || 'metal';
-                    flatData.value.second = data.s || getE(data, 'second') || 'wood';
-                    flatData.value.wandering = data.w || getE(data, 'wandering') || 'water';
-                }
-
-                // 监听数据变化，触发图腾渲染
+                // 监听数据渲染图腾
                 watch(() => reportData.value, (val) => {
                     if (val) {
                         nextTick(() => {
                             // 渲染顶部图腾
-                            renderRingTotem(flatData.value, 'header-totem');
-                            // 尝试渲染 C7
+                            renderRingTotem({ main: val.m, second: val.s, wandering: val.w }, 'header-totem');
+                            
+                            // 尝试渲染 C7 图腾
                             if (val.sections?.length >= 5) setTimeout(renderC7, 1000);
                         });
                     }
                 });
                 
-                // 双重保险
+                // 双重保险渲染
                 watch(() => reportData.value?.sections, (secs) => {
                     if (secs?.length >= 5) setTimeout(renderC7, 1500);
                 });
 
-                // 截图提示函数 (回归手动)
+                // === 交互功能 ===
+                
+                // 1. 全局保存提示
                 const showSaveTip = () => {
                     alert("📷 保存方式：\n请直接使用手机【截屏】功能，或长按页面保存。\n这样能获得最高清的灵魂图腾哦！");
                 };
 
+                // 2. 独立卡片保存 (自动生成)
+                const saveIndexCard = () => {
+                    // 注意：这里的 ID 必须对应后端生成的 HTML 里的 ID
+                    const el = document.getElementById('summary-card-content'); 
+                    if (!el) {
+                        alert('卡片尚未加载完成，请稍后再试');
+                        return;
+                    }
+
+                    showResult.value = true;
+                    isGenerating.value = true;
+
+                    html2canvas(el, {
+                        backgroundColor: null, // 保持后端设定的半透明背景
+                        scale: 3, // 高清
+                        useCORS: true,
+                        logging: false
+                    }).then(canvas => {
+                        generatedImage.value = canvas.toDataURL("image/png");
+                        isGenerating.value = false;
+                    }).catch(err => {
+                        console.error(err);
+                        alert('生成失败，请手动截屏');
+                        showResult.value = false;
+                    });
+                };
+
+                const closeResult = () => {
+                    showResult.value = false;
+                    generatedImage.value = '';
+                };
+
                 return { 
-                    isLoading, fetchError, reportData, showSaveTip
+                    isLoading, fetchError, reportData, 
+                    showSaveTip, saveIndexCard,
+                    showResult, isGenerating, generatedImage, closeResult
                 };
             }
         }).mount('#report-app');
