@@ -4,50 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>全息档案库 - V60.0 Cloud Edition</title>
-    
-    <!-- 资源引入 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入 html2canvas -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
     <style>
-        /* ================= 基础环境 ================= */
         :root { --c-bg: #020617; }
-        body { 
-            background-color: var(--c-bg); 
-            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); 
-            color: #cbd5e1; 
-            font-family: 'Noto Serif SC', serif; 
-            min-height: 100vh; 
-            overflow-x: hidden; 
-        }
+        body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
         
-        /* ================= 核心图腾样式 (Ring Engine) ================= */
+        /* 图腾样式保持不变 (Ring Engine) */
         .totem-container { position: relative !important; width: 320px; height: 320px; margin: 0 auto; overflow: visible !important; }
         .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-        
         .totem-glow-main { width: 200px; height: 200px; border-radius: 50%; filter: blur(25px); opacity: 0.6; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
         .totem-glow-sub { width: 280px; height: 280px; border-radius: 50%; filter: blur(40px); opacity: 0.2; z-index: 1; animation: breathe-soft 6s ease-in-out infinite; }
-        
         .totem-outer-ring { width: 220px; height: 220px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(0,0,0,0.5) inset; z-index: 5; }
         .totem-inner-ring { width: 200px; height: 200px; border-radius: 50%; mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); opacity: 1; z-index: 4; }
         .totem-ring-overlay { width: 200px; height: 200px; border-radius: 50%; z-index: 5; pointer-events: none; box-shadow: inset 3px 3px 6px rgba(255,255,255,0.2), inset -3px -3px 6px rgba(0,0,0,0.6), 3px 3px 10px rgba(0,0,0,0.5); mask: radial-gradient(transparent 68%, black 69%); -webkit-mask: radial-gradient(transparent 68%, black 69%); }
-        
         .totem-orbit-wrapper { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 280px; height: 280px; z-index: 100; pointer-events: none; }
         .totem-orbit-inner { width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,255,255,0.05); animation: orbit-spin 12s linear infinite; }
         .totem-planet { position: absolute; top: 50%; right: -6px; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 15px currentColor, 0 0 30px currentColor; }
-        
         .totem-bg-icon { font-size: 8rem; opacity: 0.3; z-index: 3; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); pointer-events: none; }
         .totem-char { font-size: 4.5rem; font-weight: 900; background-clip: text; -webkit-background-clip: text; color: transparent; text-shadow: 0 5px 30px rgba(0,0,0,0.8); position: relative; z-index: 11; font-family: 'Noto Serif SC', serif; }
-
         @keyframes breathe-tight { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; } 50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; } }
         @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.1; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.3; } }
         @keyframes orbit-spin { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(0, 0) rotate(360deg); } }
 
-        /* ================= 报告卡片样式 ================= */
+        /* 🔥【关键改动】截图模式下的样式控制 */
+        /* 当 body 带有 capturing-mode 类时，隐藏所有不需要出现在长图里的元素 */
+        body.capturing-mode #header-totem { display: none !important; } /* 隐藏 3D 图腾 */
+        body.capturing-mode .save-btn { display: none !important; }     /* 隐藏保存按钮 */
+        body.capturing-mode .card-save-btn { display: none !important; }/* 隐藏卡片上的小按钮 */
+        
+        /* 截图时优化排版 */
+        body.capturing-mode .container { 
+            padding-top: 2rem !important; /* 减少顶部留白 */
+            background-color: #020617;    /* 确保背景纯净 */
+        }
+
         .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
         .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.1); }
         .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; }
@@ -58,13 +53,9 @@
         .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
         
-        /* ================= 交互按钮 (保存按钮) ================= */
         .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
         .save-btn:active { transform: scale(0.9); }
-        /* 截图时隐藏按钮 */
-        .hide-on-capture .save-btn { display: none !important; }
         
-        /* ================= 章节7 小图腾适配 ================= */
         .chapter7-totem-container { width: 240px !important; height: 240px !important; margin: 2rem auto; }
         .chapter7-totem-container .totem-outer-ring { width: 180px; height: 180px; }
         .chapter7-totem-container .totem-inner-ring, .chapter7-totem-container .totem-ring-overlay { width: 160px; height: 160px; }
@@ -72,15 +63,8 @@
         .chapter7-totem-container .totem-char { font-size: 3rem; }
         .chapter7-totem-container .totem-bg-icon { font-size: 5rem; }
 
-        /* ================= 隐藏画布 (用于卡片生成) ================= */
-        #offscreen-canvas-area {
-            position: fixed; top: 0; left: -9999px; width: 600px; height: 800px; z-index: -1;
-            background-color: #020617; 
-            background-image: radial-gradient(circle at 50% 20%, #1e293b 0%, #020617 80%);
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 0; box-sizing: border-box; font-family: 'Noto Serif SC', serif;
-        }
-        /* 这里的样式复用后端生成的HTML类名，确保一致性 */
+        /* 隐藏画布 */
+        #offscreen-canvas-area { position: fixed; top: 0; left: -9999px; width: 600px; height: 800px; z-index: -1; background-color: #020617; background-image: radial-gradient(circle at 50% 20%, #1e293b 0%, #020617 80%); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 0; box-sizing: border-box; font-family: 'Noto Serif SC', serif; }
         .share-card-border { width: 100%; height: 100%; border: 2px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; position: relative; padding: 40px 30px; }
         .share-card-header { text-align: center; width: 100%; }
         .share-card-subtitle { font-size: 0.9rem; color: #d97706; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 5px; display: block; }
@@ -95,56 +79,47 @@
         .share-qr-text { font-size: 0.75rem; color: #64748b; text-align: left; line-height: 1.4; }
         .share-logo { font-weight: 900; font-size: 1rem; color: #475569; letter-spacing: 0.1em; }
 
-        /* ================= 模态框 (结果展示) ================= */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .modal-content { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
         .close-modal { margin-top: 15px; padding: 8px 20px; background: transparent; color: #94a3b8; border: none; font-size: 0.9rem; cursor: pointer; }
-        /* 图片展示容器，允许滚动 */
         .result-img-container { max-height: 70vh; overflow-y: auto; margin-bottom: 10px; border-radius: 4px; border: 1px solid #334155; }
         .result-img-container img { width: 100%; height: auto; display: block; }
-
     </style>
 </head>
-<body :class="{ 'hide-on-capture': isGenerating }">
+<body>
     <div id="report-app">
-        <!-- 状态一：加载中 -->
+        <!-- Loading -->
         <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
             <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 正在从云端解密档案...
         </div>
 
-        <!-- 状态二：错误 -->
+        <!-- Error -->
         <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-4">
             <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-6"></i>
             <h2 class="text-2xl font-bold mb-2 text-white">报告加载失败</h2>
             <p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
         </div>
 
-        <!-- 状态三：内容展示 -->
+        <!-- Content -->
         <template v-else-if="reportData">
-            <!-- 1. 全局保存按钮 (现在是真正的生成长图功能) -->
-            <div class="save-btn" @click="generateLongReport" title="保存完整报告"><i class="fa-solid fa-camera"></i></div>
+            <!-- 1. 全局保存按钮 (生成纯文字版长图) -->
+            <div class="save-btn" @click="generateLongReport" title="生成文字版长图"><i class="fa-solid fa-camera"></i></div>
             
-            <!-- 主报告区域 (ID: main-report-content) -->
             <div id="main-report-content" class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
                 <header class="text-center mb-16 fade-in-up">
-                    <!-- 圆环图腾容器 -->
+                    <!-- 圆环图腾 (截图时会自动隐藏) -->
                     <div class="mb-8" id="header-totem"></div>
 
-                    <!-- 🔥 索引小卡片板块 -->
+                    <!-- 索引小卡片 (长图的头部) -->
                     <div v-if="reportData.summaryCardHTML" class="mb-12 mx-auto max-w-md relative group">
-                        
-                        <!-- 2. 卡片内容 (后端生成) -->
+                        <!-- 卡片内容 -->
                         <div id="summary-card-wrapper" v-html="reportData.summaryCardHTML"></div>
-
-                        <!-- 3. 卡片独立保存按钮 (截图时不显示) -->
+                        <!-- 卡片独立保存按钮 (截图时自动隐藏) -->
                         <div @click.stop="saveIndexCard" 
-                             class="absolute -top-3 -right-3 w-8 h-8 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-amber-600 hover:border-amber-500 hover:text-white transition-all duration-300 z-10 text-slate-400"
-                             :class="{ 'hidden': isGenerating }"
+                             class="card-save-btn absolute -top-3 -right-3 w-8 h-8 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-amber-600 hover:border-amber-500 hover:text-white transition-all duration-300 z-10 text-slate-400"
                              title="单独保存此卡片">
                             <i class="fa-solid fa-download text-xs"></i>
                         </div>
-                        
-                        <!-- 装饰线 -->
                         <div class="absolute left-1/2 -top-4 w-px h-4 bg-gradient-to-b from-transparent to-slate-700 -translate-x-1/2"></div>
                     </div>
 
@@ -155,19 +130,16 @@
                     </div>
                 </header>
 
-                <!-- 诱导文案 -->
                 <div class="mb-12 text-center px-8 py-6 bg-slate-900/50 rounded border border-amber-900/30 fade-in-up" style="animation-delay: 0.2s">
                     <p class="text-amber-500/80 text-xs font-bold uppercase tracking-widest mb-3">Archetype Disguise</p>
                     <div class="text-slate-300 text-sm leading-relaxed" v-html="reportData.hookText || '你的面具与内核的独特配置'"></div>
                 </div>
 
-                <!-- 章节循环 -->
                 <div class="space-y-8" v-if="reportData.sections && reportData.sections.length > 0">
                     <section v-for="(section, index) in reportData.sections" :key="index" class="report-card fade-in-up" :style="{ animationDelay: ((index + 3) * 0.1) + 's' }">
                         <div class="section-num">{{ '0' + (index + 1) }}</div>
                         <div class="section-title">{{ section.title }}</div>
                         <span class="section-subtitle">{{ section.subtitle }}</span>
-                        <!-- 内容 (包含职业红黑榜) -->
                         <div v-if="!section.sopData" class="report-content" v-html="section.content"></div>
                     </section>
                 </div>
@@ -177,16 +149,14 @@
                 </footer>
             </div>
 
-            <!-- 隐藏的 3:4 分享卡片 (用于单独保存) -->
+            <!-- 隐藏画布 -->
             <div id="offscreen-canvas-area">
                 <div class="share-card-border">
                     <div class="share-card-header">
                         <span class="share-card-subtitle">ARCHETYPE IDENTITY</span>
                         <h1 class="share-card-title">{{ reportData.comboName || '五行人格' }}</h1>
                     </div>
-                    <!-- 分享卡图腾位 -->
                     <div id="share-totem-placeholder" style="margin: 10px 0;"></div>
-                    
                     <div class="archetype-grid">
                         <div class="grid-item">
                             <span class="grid-label">CORE / 内核</span>
@@ -213,7 +183,7 @@
                 </div>
             </div>
 
-            <!-- 结果展示弹窗 (长按保存) -->
+            <!-- 结果弹窗 -->
             <div v-if="showResult" class="modal-overlay" @click.self="closeResult">
                 <div class="modal-content fade-in-up" style="width: 95%; max-width: 500px; padding: 15px;">
                     <div v-if="isGenerating" class="py-12">
@@ -223,13 +193,12 @@
                     <div v-else>
                         <p class="text-amber-500 text-sm mb-3 font-bold">长按下方图片保存</p>
                         <div class="result-img-container">
-                            <img :src="generatedImage" alt="Report Image">
+                            <img :src="generatedImage" alt="Result Image">
                         </div>
                         <button class="close-modal" @click="closeResult">关闭</button>
                     </div>
                 </div>
             </div>
-
         </template>
     </div>
 
@@ -239,7 +208,6 @@
         const REPORT_FUNCTION_URL = 'https://cabsbodflwkohspatnck.supabase.co/functions/v1/report';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
         
-        // 样式字典
         const ELEM_DICT = {
             metal: { color: '#cbd5e1', name: '金', icon: 'fa-mountain' },
             wood:  { color: '#10b981', name: '木', icon: 'fa-tree' },
@@ -248,7 +216,6 @@
             earth: { color: '#d97706', name: '土', icon: 'fa-cubes' }
         };
 
-        // 圆环渲染引擎
         function renderRingTotem(totemData, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -297,7 +264,6 @@
             if (containerId === 'chapter7-totem-container') container.classList.add('chapter7-totem-container');
         }
 
-        // C7 渲染
         function renderC7() {
             const el = document.getElementById('chapter7-totem-container');
             if (!el) { setTimeout(renderC7, 500); return; }
@@ -396,7 +362,7 @@
 
                 // 2. 独立卡片保存
                 const saveIndexCard = () => {
-                    const el = document.getElementById('summary-card-content'); // 注意：这是后端HTML里div的ID
+                    const el = document.getElementById('summary-card-content'); 
                     if (!el) return;
                     showResult.value = true;
                     isGenerating.value = true;
@@ -408,7 +374,7 @@
                     });
                 };
 
-                // 3. 生成长图 (真正实现全页截图)
+                // 3. 生成纯净文字长图 (隐藏图腾)
                 const generateLongReport = () => {
                     const el = document.getElementById('main-report-content');
                     if (!el) return;
@@ -416,27 +382,31 @@
                     showResult.value = true;
                     isGenerating.value = true;
                     
-                    // 强制滚动到顶部，确保不裁切
+                    // 🔥 给 Body 添加“截图模式”类名，触发 CSS 隐藏图腾和按钮
+                    document.body.classList.add('capturing-mode');
+                    
                     window.scrollTo(0, 0);
 
-                    // 使用延时确保 DOM 渲染就绪
                     setTimeout(() => {
                         const fullHeight = el.scrollHeight;
                         html2canvas(el, {
-                            backgroundColor: '#020617', // 背景色
-                            scale: 1.5, // 移动端推荐倍率，防止内存溢出
+                            backgroundColor: '#020617',
+                            scale: 1.5,
                             useCORS: true,
                             height: fullHeight,
                             windowHeight: fullHeight,
                             y: 0,
                             scrollY: 0
                         }).then(canvas => {
-                            generatedImage.value = canvas.toDataURL("image/jpeg", 0.85); // 使用JPEG减小体积
+                            generatedImage.value = canvas.toDataURL("image/jpeg", 0.85);
                             isGenerating.value = false;
+                            // 🔥 截图完成后，移除类名，恢复显示图腾
+                            document.body.classList.remove('capturing-mode');
                         }).catch(err => {
                             console.error(err);
                             alert('生成失败，可能是内容太长，建议分段截图。');
                             showResult.value = false;
+                            document.body.classList.remove('capturing-mode');
                         });
                     }, 500);
                 };
