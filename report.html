@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>全息档案库 - V60.0 Cloud Edition</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -11,10 +12,18 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
     <style>
+        /* ================= 网页基础样式 (深色模式体验) ================= */
         :root { --c-bg: #020617; }
-        body { background-color: var(--c-bg); background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); color: #cbd5e1; font-family: 'Noto Serif SC', serif; min-height: 100vh; overflow-x: hidden; }
+        body { 
+            background-color: var(--c-bg); 
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 80%); 
+            color: #cbd5e1; 
+            font-family: 'Noto Serif SC', serif; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+        }
         
-        /* 图腾样式保持不变 (Ring Engine) */
+        /* 核心图腾样式 (保持不变) */
         .totem-container { position: relative !important; width: 320px; height: 320px; margin: 0 auto; overflow: visible !important; }
         .abs-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
         .totem-glow-main { width: 200px; height: 200px; border-radius: 50%; filter: blur(25px); opacity: 0.6; z-index: 2; animation: breathe-tight 4s ease-in-out infinite; }
@@ -31,31 +40,19 @@
         @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.1; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.3; } }
         @keyframes orbit-spin { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(0, 0) rotate(360deg); } }
 
-        /* 🔥【关键改动】截图模式下的样式控制 */
-        /* 当 body 带有 capturing-mode 类时，隐藏所有不需要出现在长图里的元素 */
-        body.capturing-mode #header-totem { display: none !important; } /* 隐藏 3D 图腾 */
-        body.capturing-mode .save-btn { display: none !important; }     /* 隐藏保存按钮 */
-        body.capturing-mode .card-save-btn { display: none !important; }/* 隐藏卡片上的小按钮 */
-        
-        /* 截图时优化排版 */
-        body.capturing-mode .container { 
-            padding-top: 2rem !important; /* 减少顶部留白 */
-            background-color: #020617;    /* 确保背景纯净 */
-        }
-
+        /* 网页端卡片样式 */
         .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
         .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.1); }
         .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; }
         .section-title { font-size: 1.5rem; font-weight: bold; color: #f1f5f9; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
         .section-subtitle { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; display: block; }
-        .report-content p { margin-bottom: 1rem; line-height: 1.8; text-align: justify; }
-        .report-content strong { color: #e2e8f0; font-weight: bold; }
         .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
         
         .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
         .save-btn:active { transform: scale(0.9); }
         
+        /* 章节7 小图腾适配 */
         .chapter7-totem-container { width: 240px !important; height: 240px !important; margin: 2rem auto; }
         .chapter7-totem-container .totem-outer-ring { width: 180px; height: 180px; }
         .chapter7-totem-container .totem-inner-ring, .chapter7-totem-container .totem-ring-overlay { width: 160px; height: 160px; }
@@ -63,27 +60,85 @@
         .chapter7-totem-container .totem-char { font-size: 3rem; }
         .chapter7-totem-container .totem-bg-icon { font-size: 5rem; }
 
-        /* 隐藏画布 */
-        #offscreen-canvas-area { position: fixed; top: 0; left: -9999px; width: 600px; height: 800px; z-index: -1; background-color: #020617; background-image: radial-gradient(circle at 50% 20%, #1e293b 0%, #020617 80%); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 0; box-sizing: border-box; font-family: 'Noto Serif SC', serif; }
-        .share-card-border { width: 100%; height: 100%; border: 2px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; position: relative; padding: 40px 30px; }
-        .share-card-header { text-align: center; width: 100%; }
-        .share-card-subtitle { font-size: 0.9rem; color: #d97706; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 5px; display: block; }
-        .share-card-title { font-size: 2.8rem; font-weight: 900; color: #fff; letter-spacing: 0.1em; line-height: 1.2; margin: 0; }
+        /* ================= 隐藏的“小卡片”专用画布 ================= */
+        #offscreen-summary-card { position: fixed; top: 0; left: -9999px; width: 600px; z-index: -1; background-color: #020617; background-image: radial-gradient(circle at 50% 20%, #1e293b 0%, #020617 80%); padding: 0; box-sizing: border-box; }
+        .share-card-border { width: 100%; border: 2px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; position: relative; padding: 40px 30px; }
         .archetype-grid { display: flex; justify-content: space-between; width: 100%; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
         .grid-item { text-align: center; flex: 1; }
         .grid-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; display: block; }
         .grid-value { font-size: 1.4rem; font-weight: bold; }
         .share-desc-box { text-align: center; margin-top: 20px; padding: 15px; background: rgba(15,23,42,0.5); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); width: 100%; }
         .share-desc-text { color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin: 0; min-height: 3em; }
-        .share-card-footer { margin-top: auto; width: 100%; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .share-card-footer { margin-top: 20px; width: 100%; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; }
         .share-qr-text { font-size: 0.75rem; color: #64748b; text-align: left; line-height: 1.4; }
         .share-logo { font-weight: 900; font-size: 1rem; color: #475569; letter-spacing: 0.1em; }
 
+        /* ================= 🔥 核心功能：【纯净版】长图导出画布 (Export Canvas) ================= */
+        /* 这个区域平时隐藏，只有截图时才会被渲染 */
+        #export-full-report {
+            position: fixed; 
+            top: 0; left: -9999px; /* 移出屏幕 */
+            width: 750px; /* 固定宽度，保证排版一致 */
+            background-color: #f8fafc; /* 浅色纸质背景 */
+            color: #1e293b; /* 深色文字 */
+            padding: 40px;
+            font-family: 'Noto Serif SC', serif;
+            z-index: -2;
+        }
+
+        /* 强制覆盖后端传回来的深色模式 CSS */
+        /* 将所有 text-slate-xxx 等颜色强制转为深色 */
+        #export-full-report * {
+            text-shadow: none !important; /* 去除文字发光 */
+            box-shadow: none !important; /* 去除盒子阴影 */
+        }
+        
+        /* 强制背景变白/透明 */
+        #export-full-report [class*="bg-"] {
+            background-color: transparent !important;
+            background-image: none !important;
+        }
+        #export-full-report .bg-slate-900, 
+        #export-full-report .bg-slate-800 {
+            background-color: #f1f5f9 !important; /* 浅灰底 */
+            border: 1px solid #cbd5e1 !important;
+        }
+
+        /* 强制文字变黑 */
+        #export-full-report [class*="text-"] {
+            color: #334155 !important;
+        }
+        #export-full-report h2, 
+        #export-full-report h3, 
+        #export-full-report .font-bold {
+            color: #0f172a !important; /* 标题更黑 */
+        }
+        #export-full-report .text-amber-500,
+        #export-full-report .text-amber-600 {
+            color: #d97706 !important; /* 保留一点品牌色 */
+        }
+
+        /* 导出版排版优化 */
+        .export-header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #000; }
+        .export-title { font-size: 48px; font-weight: 900; margin-bottom: 10px; color: #000; }
+        .export-subtitle { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #64748b; }
+        
+        .export-section { margin-bottom: 40px; page-break-inside: avoid; }
+        .export-section-title { font-size: 24px; font-weight: bold; border-left: 5px solid #000; padding-left: 15px; margin-bottom: 15px; display: flex; align-items: baseline; justify-content: space-between;}
+        .export-section-num { font-size: 36px; opacity: 0.1; font-weight: 900; }
+        .export-content { font-size: 16px; line-height: 1.8; text-align: justify; color: #333; }
+        
+        .export-footer { margin-top: 50px; padding-top: 30px; border-top: 1px solid #ccc; text-align: center; display: flex; justify-content: space-between; align-items: flex-end; }
+        .export-logo { font-weight: 900; font-size: 24px; color: #000; }
+        .export-slogan { font-size: 12px; color: #666; letter-spacing: 2px; }
+
+        /* ================= 模态框 ================= */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .modal-content { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
         .close-modal { margin-top: 15px; padding: 8px 20px; background: transparent; color: #94a3b8; border: none; font-size: 0.9rem; cursor: pointer; }
         .result-img-container { max-height: 70vh; overflow-y: auto; margin-bottom: 10px; border-radius: 4px; border: 1px solid #334155; }
         .result-img-container img { width: 100%; height: auto; display: block; }
+
     </style>
 </head>
 <body>
@@ -100,30 +155,26 @@
             <p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
         </div>
 
-        <!-- Content -->
+        <!-- Content (网页版显示区域) -->
         <template v-else-if="reportData">
-            <!-- 1. 全局保存按钮 (生成纯文字版长图) -->
-            <div class="save-btn" @click="generateLongReport" title="生成文字版长图"><i class="fa-solid fa-camera"></i></div>
+            <!-- 1. 全局保存按钮 (生成纯净版长图) -->
+            <div class="save-btn" @click="generateLongReport" title="生成报告单"><i class="fa-solid fa-camera"></i></div>
             
             <div id="main-report-content" class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
                 <header class="text-center mb-16 fade-in-up">
-                    <!-- 圆环图腾 (截图时会自动隐藏) -->
                     <div class="mb-8" id="header-totem"></div>
 
-                    <!-- 索引小卡片 (长图的头部) -->
+                    <!-- 网页版显示的卡片 -->
                     <div v-if="reportData.summaryCardHTML" class="mb-12 mx-auto max-w-md relative group">
-                        <!-- 卡片内容 -->
                         <div id="summary-card-wrapper" v-html="reportData.summaryCardHTML"></div>
-                        <!-- 卡片独立保存按钮 (截图时自动隐藏) -->
                         <div @click.stop="saveIndexCard" 
-                             class="card-save-btn absolute -top-3 -right-3 w-8 h-8 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-amber-600 hover:border-amber-500 hover:text-white transition-all duration-300 z-10 text-slate-400"
+                             class="absolute -top-3 -right-3 w-8 h-8 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-amber-600 hover:border-amber-500 hover:text-white transition-all duration-300 z-10 text-slate-400"
                              title="单独保存此卡片">
                             <i class="fa-solid fa-download text-xs"></i>
                         </div>
                         <div class="absolute left-1/2 -top-4 w-px h-4 bg-gradient-to-b from-transparent to-slate-700 -translate-x-1/2"></div>
                     </div>
 
-                    <!-- 标题 -->
                     <div class="space-y-2">
                         <p class="text-amber-600 text-xs tracking-[0.5em] uppercase">Project Archetype V60 Cloud</p>
                         <h1 class="text-4xl font-black text-white tracking-widest">{{ reportData.comboName || '五行人格报告' }}</h1>
@@ -149,8 +200,46 @@
                 </footer>
             </div>
 
-            <!-- 隐藏画布 -->
-            <div id="offscreen-canvas-area">
+            <!-- ================= 🔥 隐藏的【纯净版长图】生成区 ================= -->
+            <div id="export-full-report">
+                <!-- 头部 -->
+                <div class="export-header">
+                    <div class="export-subtitle">G-FORCE INFINITE STUDIO</div>
+                    <div class="export-title">{{ reportData.comboName }}</div>
+                    <div style="font-size: 14px; color: #666;">ARCHETYPE ANALYSIS REPORT · V60 CLOUD</div>
+                </div>
+
+                <!-- 1. 索引卡片 (复用内容，但 CSS 会强制它变浅色) -->
+                <div class="export-section" style="border: 2px solid #000; border-radius: 12px; padding: 20px; background: #fff !important;">
+                    <div v-html="reportData.summaryCardHTML"></div>
+                </div>
+
+                <!-- 2. 诱导文案 -->
+                <div class="export-section" style="background: #f8f9fa; padding: 20px; border-left: 4px solid #000;">
+                    <strong style="display: block; margin-bottom: 10px; font-size: 12px; letter-spacing: 2px;">ARCHETYPE DISGUISE</strong>
+                    <div class="export-content" v-html="reportData.hookText"></div>
+                </div>
+
+                <!-- 3. 所有章节 (纯文字) -->
+                <div v-for="(section, index) in reportData.sections" :key="index" class="export-section">
+                    <div class="export-section-title">
+                        <span>{{ section.title }}</span>
+                        <span class="export-section-num">0{{ index + 1 }}</span>
+                    </div>
+                    <!-- CSS 强力清洗会把这里的深色背景全变成白色 -->
+                    <div class="export-content" v-html="section.content"></div>
+                </div>
+
+                <!-- 底部 -->
+                <div class="export-footer">
+                    <div class="export-logo">G-FORCE</div>
+                    <div class="export-slogan">无限超引 · 探索本源</div>
+                    <div style="font-size: 10px; color: #999;">SCAN TO VIEW FULL REPORT</div>
+                </div>
+            </div>
+
+            <!-- ================= 隐藏的【小卡片】专用画布 ================= -->
+            <div id="offscreen-summary-card">
                 <div class="share-card-border">
                     <div class="share-card-header">
                         <span class="share-card-subtitle">ARCHETYPE IDENTITY</span>
@@ -188,10 +277,10 @@
                 <div class="modal-content fade-in-up" style="width: 95%; max-width: 500px; padding: 15px;">
                     <div v-if="isGenerating" class="py-12">
                         <i class="fa-solid fa-circle-notch fa-spin text-3xl text-amber-500 mb-4"></i>
-                        <p class="text-slate-400">正在渲染全息影像...</p>
+                        <p class="text-slate-400">正在生成高清报告...</p>
                     </div>
                     <div v-else>
-                        <p class="text-amber-500 text-sm mb-3 font-bold">长按下方图片保存</p>
+                        <p class="text-amber-500 text-sm mb-3 font-bold">长按图片保存到相册</p>
                         <div class="result-img-container">
                             <img :src="generatedImage" alt="Result Image">
                         </div>
@@ -362,7 +451,7 @@
 
                 // 2. 独立卡片保存
                 const saveIndexCard = () => {
-                    const el = document.getElementById('summary-card-content'); 
+                    const el = document.getElementById('summary-card-content'); // 注意：这里的 ID 对应后端生成的卡片内部 ID
                     if (!el) return;
                     showResult.value = true;
                     isGenerating.value = true;
@@ -374,39 +463,25 @@
                     });
                 };
 
-                // 3. 生成纯净文字长图 (隐藏图腾)
+                // 3. 生成【纯净版】文字长图
                 const generateLongReport = () => {
-                    const el = document.getElementById('main-report-content');
+                    const el = document.getElementById('export-full-report'); // 这里的 ID 对应我们新加的隐藏区域
                     if (!el) return;
                     
                     showResult.value = true;
                     isGenerating.value = true;
                     
-                    // 🔥 给 Body 添加“截图模式”类名，触发 CSS 隐藏图腾和按钮
-                    document.body.classList.add('capturing-mode');
-                    
-                    window.scrollTo(0, 0);
-
                     setTimeout(() => {
-                        const fullHeight = el.scrollHeight;
                         html2canvas(el, {
-                            backgroundColor: '#020617',
-                            scale: 1.5,
-                            useCORS: true,
-                            height: fullHeight,
-                            windowHeight: fullHeight,
-                            y: 0,
-                            scrollY: 0
+                            scale: 2, // 导出为2倍高清
+                            useCORS: true
                         }).then(canvas => {
-                            generatedImage.value = canvas.toDataURL("image/jpeg", 0.85);
+                            generatedImage.value = canvas.toDataURL("image/jpeg", 0.9);
                             isGenerating.value = false;
-                            // 🔥 截图完成后，移除类名，恢复显示图腾
-                            document.body.classList.remove('capturing-mode');
                         }).catch(err => {
                             console.error(err);
-                            alert('生成失败，可能是内容太长，建议分段截图。');
+                            alert('生成失败，请重试');
                             showResult.value = false;
-                            document.body.classList.remove('capturing-mode');
                         });
                     }, 500);
                 };
