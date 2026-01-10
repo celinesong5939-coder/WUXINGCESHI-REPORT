@@ -112,7 +112,20 @@
         .export-footer { margin-top: 50px; padding-top: 30px; border-top: 1px solid #ccc; text-align: center; display: flex; justify-content: space-between; align-items: flex-end; }
         .export-logo { font-weight: 900; font-size: 24px; color: #000; }
         .export-slogan { font-size: 12px; color: #666; letter-spacing: 2px; }
-
+        /* 新增品牌水印样式 */
+.report-card::after {
+    content: 'ZigZag Studio';
+    position: absolute;
+    bottom: 1rem;
+    right: 1.5rem;
+    font-size: 0.6rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.03); /* 极淡，不打扰阅读 */
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    pointer-events: none;
+    font-family: sans-serif;
+}
     </style>
 </head>
 <body>
@@ -512,4 +525,5 @@
     </script>
 </body>
 </html>
+
 
