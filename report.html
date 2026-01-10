@@ -375,6 +375,8 @@
                         newUrl.searchParams.delete('k');
                         newUrl.searchParams.delete('key');
                         newUrl.searchParams.delete('code');
+                        // 清洗 m, s, w 等参数，保持 URL 干净
+                        ['m', 's', 'w', 'l', 'g'].forEach(p => newUrl.searchParams.delete(p));
                         window.history.replaceState({}, document.title, newUrl.toString());
                     } else {
                         userKey = localStorage.getItem('archetype_current_key');
@@ -386,9 +388,13 @@
                         return;
                     }
 
+                    // 缓存逻辑
                     const CACHE_KEY = `archetype_cache_${userKey}`;
                     const cached = localStorage.getItem(CACHE_KEY);
-                    if (cached) {
+                    // 如果 URL 里有 m 参数，说明是新测试，不读缓存
+                    const isNewTest = params.has('m'); 
+
+                    if (cached && !isNewTest) {
                         try {
                             const parsed = JSON.parse(cached);
                             reportData.value = parsed;
@@ -399,7 +405,10 @@
                     }
 
                     try {
-                        const res = await fetch(`${REPORT_FUNCTION_URL}?code=${userKey}`, {
+                        // 构造请求，带上所有参数
+                        if (!params.has('code')) params.append('code', userKey);
+                        
+                        const res = await fetch(`${REPORT_FUNCTION_URL}?${params.toString()}`, {
                             headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
                         });
                         const data = await res.json();
@@ -417,6 +426,7 @@
                     }
                 });
 
+                // 🔥【补回】缺失的数据处理函数
                 function processFlatData(data) {
                     const getE = (src, key) => {
                         if (src[key]) return typeof src[key] === 'string' ? src[key] : src[key].element;
@@ -429,11 +439,12 @@
                     flatData.value.wandering = data.w || getE(data, 'wandering') || 'water';
                 }
 
+                // 监听数据渲染图腾
                 watch(() => reportData.value, (val) => {
                     if (val) {
                         nextTick(() => {
                             renderRingTotem(flatData.value, 'header-totem');
-                            renderRingTotem(flatData.value, 'share-totem-placeholder');
+                            renderRingTotem(flatData.value, 'share-totem-placeholder'); // 如果小卡片有图腾占位
                             if (val.sections?.length >= 5) setTimeout(renderC7, 1000);
                         });
                     }
@@ -442,11 +453,13 @@
                     if (secs?.length >= 5) setTimeout(renderC7, 1500);
                 });
 
+                // 🔥【补回】模板辅助函数
                 const getElementColor = (key) => ELEM_DICT[key?.toLowerCase()]?.color || '#cbd5e1';
                 const getElementName = (key) => ELEM_DICT[key?.toLowerCase()]?.name || key;
 
+                // 🔥【补回】独立卡片保存功能
                 const saveIndexCard = () => {
-                    const el = document.getElementById('summary-card-content'); // 对应后端ID
+                    const el = document.getElementById('summary-card-content');
                     if (!el) return;
                     showResult.value = true;
                     isGenerating.value = true;
@@ -458,8 +471,9 @@
                     });
                 };
 
+                // 生成纯净版长图
                 const generateLongReport = () => {
-                    const el = document.getElementById('export-full-report'); // 对应纯净版ID
+                    const el = document.getElementById('export-full-report');
                     if (!el) return;
                     showResult.value = true;
                     isGenerating.value = true;
