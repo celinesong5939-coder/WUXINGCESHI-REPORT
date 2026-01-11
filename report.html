@@ -46,12 +46,14 @@
         @keyframes breathe-soft { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.1; } 50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.3; } }
         @keyframes orbit-spin { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(0, 0) rotate(360deg); } }
 
-        /* 截图模式样式 */
+        /* ================= 截图模式控制 ================= */
+        /* 截图时隐藏多余元素 */
         body.capturing-mode #header-totem { display: none !important; }
         body.capturing-mode .save-btn { display: none !important; }
         body.capturing-mode .card-save-btn { display: none !important; }
         body.capturing-mode .container { padding-top: 2rem !important; background-color: #020617; }
 
+        /* ================= 报告卡片样式 ================= */
         .report-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; margin-bottom: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
         .report-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.1); }
         .section-num { position: absolute; top: 1rem; right: 1rem; font-size: 4rem; font-weight: 900; opacity: 0.05; line-height: 1; }
@@ -62,9 +64,12 @@
         .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
         
+        /* ================= 交互按钮 ================= */
         .save-btn { position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100; transition: transform 0.2s; }
         .save-btn:active { transform: scale(0.9); }
+        .cursor-wait { cursor: wait; opacity: 0.7; pointer-events: none; } /* 加载中状态 */
         
+        /* ================= 章节7 小图腾适配 ================= */
         .chapter7-totem-container { width: 240px !important; height: 240px !important; margin: 2rem auto; }
         .chapter7-totem-container .totem-outer-ring { width: 180px; height: 180px; }
         .chapter7-totem-container .totem-inner-ring, .chapter7-totem-container .totem-ring-overlay { width: 160px; height: 160px; }
@@ -72,8 +77,15 @@
         .chapter7-totem-container .totem-char { font-size: 3rem; }
         .chapter7-totem-container .totem-bg-icon { font-size: 5rem; }
 
-        /* 隐藏画布 & 模态框 */
-        #offscreen-canvas-area { position: fixed; top: 0; left: -9999px; width: 600px; height: 800px; z-index: -1; background-color: #020617; background-image: radial-gradient(circle at 50% 20%, #1e293b 0%, #020617 80%); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 0; box-sizing: border-box; font-family: 'Noto Serif SC', serif; }
+        /* ================= 隐藏的【小卡片】专用画布 ================= */
+        /* 补丁2：强制锁死尺寸，防止移动端变形 */
+        #offscreen-summary-card { 
+            position: fixed; top: 0; left: -9999px; 
+            width: 600px !important; height: 800px !important; 
+            z-index: -1; background-color: #020617; background-image: radial-gradient(circle at 50% 20%, #1e293b 0%, #020617 80%); 
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 0; box-sizing: border-box; font-family: 'Noto Serif SC', serif; 
+        }
+        
         .share-card-border { width: 100%; height: 100%; border: 2px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; position: relative; padding: 40px 30px; }
         .share-card-header { text-align: center; width: 100%; }
         .share-card-subtitle { font-size: 0.9rem; color: #d97706; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 5px; display: block; }
@@ -88,20 +100,28 @@
         .share-qr-text { font-size: 0.75rem; color: #64748b; text-align: left; line-height: 1.4; }
         .share-logo { font-weight: 900; font-size: 1rem; color: #475569; letter-spacing: 0.1em; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .modal-content { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
-        .close-modal { margin-top: 15px; padding: 8px 20px; background: transparent; color: #94a3b8; border: none; font-size: 0.9rem; cursor: pointer; }
-        .result-img-container { max-height: 70vh; overflow-y: auto; margin-bottom: 10px; border-radius: 4px; border: 1px solid #334155; }
-        .result-img-container img { width: 100%; height: auto; display: block; }
+        /* 补丁2：小屏幕适配 */
+        @media (max-width: 380px) {
+            .archetype-grid { gap: 4px; }
+            .grid-label { font-size: 0.6rem; }
+            .grid-value { font-size: 1.1rem; }
+            .share-card-title { font-size: 2.2rem; }
+        }
 
-        /* 纯净版导出样式 */
-        #export-full-report { position: fixed; top: 0; left: -9999px; width: 750px; background-color: #f8fafc; color: #1e293b; padding: 40px; font-family: 'Noto Serif SC', serif; z-index: -2; }
+        /* ================= 隐藏的【纯净版长图】生成区 ================= */
+        /* 补丁2：强制锁死宽度 */
+        #export-full-report { 
+            position: fixed; top: 0; left: -9999px; 
+            width: 750px !important; 
+            background-color: #f8fafc; color: #1e293b; padding: 40px; font-family: 'Noto Serif SC', serif; z-index: -2; 
+        }
         #export-full-report * { text-shadow: none !important; box-shadow: none !important; }
         #export-full-report [class*="bg-"] { background-color: transparent !important; background-image: none !important; }
         #export-full-report .bg-slate-900, #export-full-report .bg-slate-800 { background-color: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; }
         #export-full-report [class*="text-"] { color: #334155 !important; }
         #export-full-report h2, #export-full-report h3, #export-full-report .font-bold { color: #0f172a !important; }
         #export-full-report .text-amber-500, #export-full-report .text-amber-600 { color: #d97706 !important; }
+        
         .export-header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #000; }
         .export-title { font-size: 48px; font-weight: 900; margin-bottom: 10px; color: #000; }
         .export-subtitle { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #64748b; }
@@ -112,37 +132,38 @@
         .export-footer { margin-top: 50px; padding-top: 30px; border-top: 1px solid #ccc; text-align: center; display: flex; justify-content: space-between; align-items: flex-end; }
         .export-logo { font-weight: 900; font-size: 24px; color: #000; }
         .export-slogan { font-size: 12px; color: #666; letter-spacing: 2px; }
-        /* 新增品牌水印样式 */
-.report-card::after {
-    content: 'ZigZag Studio';
-    position: absolute;
-    bottom: 1rem;
-    right: 1.5rem;
-    font-size: 0.6rem;
-    font-weight: 900;
-    color: rgba(255, 255, 255, 0.03); /* 极淡，不打扰阅读 */
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    pointer-events: none;
-    font-family: sans-serif;
-}
+
+        /* ================= 模态框 ================= */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .modal-content { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+        .close-modal { margin-top: 15px; padding: 8px 20px; background: transparent; color: #94a3b8; border: none; font-size: 0.9rem; cursor: pointer; }
+        .result-img-container { max-height: 70vh; overflow-y: auto; margin-bottom: 10px; border-radius: 4px; border: 1px solid #334155; }
+        .result-img-container img { width: 100%; height: auto; display: block; }
     </style>
 </head>
-<body>
+<body :class="{ 'hide-on-capture': isGenerating }">
     <div id="report-app">
+        <!-- 状态一：加载中 -->
         <div v-if="isLoading" class="flex items-center justify-center h-screen text-slate-500">
             <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 正在从云端解密档案...
         </div>
 
+        <!-- 状态二：错误 -->
         <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-screen text-center px-4">
             <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-6"></i>
             <h2 class="text-2xl font-bold mb-2 text-white">报告加载失败</h2>
             <p class="text-slate-400 max-w-sm">{{ fetchError }}</p>
         </div>
 
+        <!-- 状态三：内容展示 -->
         <template v-else-if="reportData">
-            <!-- 全局保存按钮 -->
-            <div class="save-btn" @click="generateLongReport" title="生成报告单"><i class="fa-solid fa-camera"></i></div>
+            <!-- 1. 全局保存按钮 (补丁3：加载状态反馈) -->
+            <div class="save-btn" 
+                 @click="!isGenerating && generateLongReport()" 
+                 :class="{'opacity-50 cursor-wait': isGenerating}"
+                 :title="isGenerating ? '生成中...' : '生成报告单'">
+                <i class="fa-solid" :class="isGenerating ? 'fa-circle-notch fa-spin' : 'fa-camera'"></i>
+            </div>
             
             <div id="main-report-content" class="container mx-auto px-4 pb-20 max-w-3xl pt-12">
                 <header class="text-center mb-16 fade-in-up">
@@ -151,20 +172,23 @@
                     <!-- 索引卡片 -->
                     <div v-if="reportData.summaryCardHTML" class="mb-12 mx-auto max-w-md relative group">
                         <div id="summary-card-wrapper" v-html="reportData.summaryCardHTML"></div>
-                        <div @click.stop="saveIndexCard" 
-                             class="card-save-btn absolute -top-3 -right-3 w-8 h-8 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-amber-600 hover:border-amber-500 hover:text-white transition-all duration-300 z-10 text-slate-400"
+                        
+                        <!-- 卡片独立保存按钮 (补丁3：加载状态反馈) -->
+                        <div @click.stop="!isGenerating && saveIndexCard()" 
+                             class="card-save-btn absolute -top-3 -right-3 w-8 h-8 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all duration-300 z-10"
+                             :class="isGenerating ? 'text-amber-500 border-amber-500 cursor-wait' : 'text-slate-400 hover:bg-amber-600 hover:border-amber-500 hover:text-white'"
                              title="单独保存此卡片">
-                            <i class="fa-solid fa-download text-xs"></i>
+                            <i class="fa-solid" :class="isGenerating ? 'fa-circle-notch fa-spin' : 'fa-download'"></i>
                         </div>
                         <div class="absolute left-1/2 -top-4 w-px h-4 bg-gradient-to-b from-transparent to-slate-700 -translate-x-1/2"></div>
                     </div>
 
                     <div class="space-y-2">
                         <p class="text-amber-600 text-xs tracking-[0.2em] uppercase flex items-center justify-center gap-2">
-    <span>PROJECT ARCHETYPE</span>
-    <span class="w-1 h-1 rounded-full bg-amber-600"></span>
-    <span class="text-slate-500">ZIGZAG STUDIO</span>
-</p>
+                            <span>PROJECT ARCHETYPE</span>
+                            <span class="w-1 h-1 rounded-full bg-amber-600"></span>
+                            <span class="text-slate-500">ZIGZAG STUDIO</span>
+                        </p>
                         <h1 class="text-4xl font-black text-white tracking-widest">{{ reportData.comboName || '五行人格报告' }}</h1>
                     </div>
                 </header>
@@ -183,29 +207,20 @@
                     </section>
                 </div>
                 
-                <!-- 🔥🔥🔥【页脚更新】品牌露出 + 免责声明 🔥🔥🔥 -->
                 <footer class="text-center mt-24 pb-12 px-6 fade-in-up" style="animation-delay: 1s;">
-                    <!-- 分割线 -->
                     <div class="w-full h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent mb-10"></div>
-
-                    <!-- 出品方：水母骨头 -->
                     <div class="mb-8">
                         <p class="text-slate-500 text-[10px] tracking-[0.3em] uppercase mb-2">Produced By</p>
                         <h3 class="text-xl font-bold text-slate-200 tracking-widest" style="font-family: 'Noto Serif SC', serif;">
                             水母骨头 <span class="text-[#FF9EBF] font-sans italic mx-1">ZigZag</span> 工作室
                         </h3>
                     </div>
-
-                    <!-- 法务声明容器 -->
                     <div class="max-w-2xl mx-auto p-5 rounded-lg bg-slate-900/40 border border-slate-800/60 backdrop-blur-sm relative overflow-hidden">
-                        <!-- 装饰：左上角警告标 -->
                         <div class="absolute top-0 left-0 w-1 h-full bg-slate-700"></div>
-                        
                         <div class="flex items-center gap-2 mb-3 opacity-70">
                             <i class="fa-solid fa-circle-info text-xs text-amber-600"></i>
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Legal Statement</span>
                         </div>
-                        
                         <p class="text-[11px] leading-relaxed text-slate-500 text-justify font-light">
                             本报告基于荣格心理学原型理论与东方五行哲学构建，旨在提供性格探索的趣味视角与自我认知参考。
                             <br class="mb-2">
@@ -213,14 +228,10 @@
                             测试结果不构成任何形式的专业心理咨询诊断、精神科医疗建议或人生重大决策依据。命运掌握在自己手中，本报告仅作为"心灵地图"供您参考。
                         </p>
                     </div>
-
-                    <!-- 版权信息 -->
                     <p class="text-slate-700 text-[10px] mt-8 font-mono">
                         &copy; 2026 ZigZag Studio. All Rights Reserved.
                     </p>
                 </footer>
-                <!-- 🔥🔥🔥 页脚结束 🔥🔥🔥 -->
-
             </div>
 
             <!-- 导出画布 (Export) -->
@@ -372,11 +383,11 @@
             renderRingTotem({ main: el.dataset.m, second: el.dataset.s, wandering: el.dataset.w }, 'chapter7-totem-container');
         }
 
-       createApp({
+        createApp({
             setup() {
-                // 🔥 1. 定义当前版本号 (每次发新版，改这个数字，比如 1.1, 1.2)
-                const APP_VERSION = "2.0_ZIGZAG_LAUNCH"; 
-                
+                // 补丁1：版本号控制
+                const APP_VERSION = "2.1_ZIGZAG_LAUNCH"; 
+
                 const isLoading = ref(true);
                 const fetchError = ref('');
                 const reportData = ref(null);
@@ -389,15 +400,18 @@
                     const params = new URLSearchParams(window.location.search);
                     let userKey = params.get('k') || params.get('key') || params.get('code');
                     
-                    // ... (密钥持久化逻辑不变，省略以节省空间) ...
-                    // ... (window.history.replaceState ... ) ...
-
-                    if (!userKey) {
-                        // ... (尝试从 localStorage 获取 key) ...
+                    if (userKey) {
+                        localStorage.setItem('archetype_current_key', userKey);
+                        const newUrl = new URL(window.location.href);
+                        // 清洗 URL 参数
+                        ['k', 'key', 'code', 'm', 's', 'w', 'l', 'g'].forEach(p => newUrl.searchParams.delete(p));
+                        window.history.replaceState({}, document.title, newUrl.toString());
+                    } else {
+                        userKey = localStorage.getItem('archetype_current_key');
                     }
 
                     if (!userKey) {
-                        fetchError.value = "未检测到有效密钥，请从测试入口进入。";
+                        fetchError.value = "未检测到有效密钥，请重新从测试结果页进入。";
                         isLoading.value = false;
                         return;
                     }
@@ -406,35 +420,28 @@
                     const cached = localStorage.getItem(CACHE_KEY);
                     const isNewTest = params.has('m'); 
 
-                    // 🔥 2. 强壮的缓存检查逻辑
+                    // 补丁1：缓存检查
                     if (cached && !isNewTest) {
                         try {
                             const parsed = JSON.parse(cached);
-                            
-                            // 检查：如果缓存里没版本号，或者版本号旧了 -> 视为无效，强制刷新
+                            // 检查版本号
                             if (parsed._app_version === APP_VERSION) {
                                 reportData.value = parsed;
                                 processFlatData(parsed);
                                 isLoading.value = false;
-                                console.log(`✅ 版本匹配 (${APP_VERSION})，读取本地缓存`);
                                 return; 
                             } else {
-                                console.log("⚠️ 版本过旧或结构变更，强制刷新数据...");
-                                // 不 return，让它继续往下走去 fetch
+                                console.log("版本过旧，强制更新...");
                             }
-                        } catch (e) { 
-                            localStorage.removeItem(CACHE_KEY); 
-                        }
+                        } catch (e) { localStorage.removeItem(CACHE_KEY); }
                     }
 
-                    // 3. 请求 API
                     try {
                         if (!params.has('code')) params.append('code', userKey);
                         
                         const res = await fetch(`${REPORT_FUNCTION_URL}?${params.toString()}`, {
                             headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
                         });
-                        
                         const data = await res.json();
                         if (!res.ok) throw new Error(data.message || '报告生成失败');
                         
@@ -442,24 +449,18 @@
                         const finalData = { 
                             ...data, ...core, 
                             sections: data.sections || core.sections,
-                            _app_version: APP_VERSION // 🔥 存入时打上版本钢印
+                            _app_version: APP_VERSION // 存入版本号
                         };
-                        
                         reportData.value = finalData;
                         processFlatData(finalData);
-                        
-                        // 存入带版本号的新数据
                         localStorage.setItem(CACHE_KEY, JSON.stringify(finalData));
-                        
                     } catch (e) {
                         fetchError.value = e.message;
                     } finally {
                         isLoading.value = false;
                     }
                 });
-                
-                // ... (后面的 generateLongReport 等函数保持不变) ...
-                // 🔥【补回】缺失的数据处理函数
+
                 function processFlatData(data) {
                     const getE = (src, key) => {
                         if (src[key]) return typeof src[key] === 'string' ? src[key] : src[key].element;
@@ -472,12 +473,11 @@
                     flatData.value.wandering = data.w || getE(data, 'wandering') || 'water';
                 }
 
-                // 监听数据渲染图腾
                 watch(() => reportData.value, (val) => {
                     if (val) {
                         nextTick(() => {
                             renderRingTotem(flatData.value, 'header-totem');
-                            renderRingTotem(flatData.value, 'share-totem-placeholder'); // 如果小卡片有图腾占位
+                            renderRingTotem(flatData.value, 'share-totem-placeholder');
                             if (val.sections?.length >= 5) setTimeout(renderC7, 1000);
                         });
                     }
@@ -486,13 +486,11 @@
                     if (secs?.length >= 5) setTimeout(renderC7, 1500);
                 });
 
-                // 🔥【补回】模板辅助函数
                 const getElementColor = (key) => ELEM_DICT[key?.toLowerCase()]?.color || '#cbd5e1';
                 const getElementName = (key) => ELEM_DICT[key?.toLowerCase()]?.name || key;
 
-                // 🔥【补回】独立卡片保存功能
                 const saveIndexCard = () => {
-                    const el = document.getElementById('summary-card-content');
+                    const el = document.getElementById('summary-card-content'); 
                     if (!el) return;
                     showResult.value = true;
                     isGenerating.value = true;
@@ -504,7 +502,6 @@
                     });
                 };
 
-                // 生成纯净版长图
                 const generateLongReport = () => {
                     const el = document.getElementById('export-full-report');
                     if (!el) return;
@@ -541,6 +538,3 @@
     </script>
 </body>
 </html>
-
-
-
