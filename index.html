@@ -432,7 +432,22 @@
     // Vue应用初始化
     function initVueApp() {
         const { createApp, ref, computed } = Vue;
+// ================= 配置区域 (新增) =================
+    // 你的 Supabase 项目地址和 Anon Key (从你之前的 report.html 里提取的)
+    const SUPABASE_PROJECT_URL = 'https://cabsbodflwkohspatnck.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhYnNib2RmbHdrb2hzcGF0bmNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTYyMzksImV4cCI6MjA4MjU3MjIzOX0.3b_2jnoJPB86ei8DdnGtQbw3iBPpynhoDGK1KrsEw7Y';
+    const VERIFY_FUNCTION_URL = `${SUPABASE_PROJECT_URL}/functions/v1/verify`;
 
+    // 获取设备信息的辅助函数 (新增)
+    function getSystemInfo() {
+        var ua = navigator.userAgent;
+        if (/iPhone|iPad|iPod/i.test(ua)) return "iOS (iPhone/iPad)";
+        if (/Android/i.test(ua)) return "Android";
+        if (/Macintosh/i.test(ua)) return "Mac OS";
+        if (/Windows/i.test(ua)) return "Windows PC";
+        return "其他设备";
+    }
+    // =================================================
         createApp({
             setup() {
                 const phase = ref('start');
@@ -608,25 +623,82 @@
                 };
 
                
-                const verifyAndUnlock = () => {
-                    const codeToVerify = unlockCode.value.trim();
+               // ================= 核心修改：验证并解锁函数 =================
+                const verifyAndUnlock = async () => {
+                    const rawInput = unlockCode.value.trim();
                     
-                    if (!codeToVerify) {
+                    if (!rawInput) {
                         unlockError.value = "请输入您的解锁密钥。";
                         return;
                     }
-                    
-                    const params = new URLSearchParams({
-                        g: gender.value,
-                        m: getAttributeKey(resultData.value.main),
-                        s: getAttributeKey(resultData.value.second),
-                        w: getAttributeKey(resultData.value.wandering),
-                        l: resultData.value.missingKey,
-                        code: codeToVerify 
-                    });
-                    
-                    window.location.href = `report.html?${params.toString()}`;
+
+                    // 1. 设置加载状态
+                    isVerifying.value = true;
+                    unlockError.value = "";
+
+                    // 2. 清洗密钥 (正则匹配)
+                    // 匹配 8位纯大写字母数字 OR BYZG开头的长码
+                    let match = rawInput.toUpperCase().match(/[A-Z0-9]{8}|BYZG-[A-Z0-9-]+/);
+                    let cleanKey = match ? match[0] : rawInput;
+
+                    // 3. 收集信息 (设备 + IP)
+                    const deviceInfo = getSystemInfo();
+                    let userIp = "Unknown IP";
+
+                    try {
+                        // 尝试获取 IP (设置 2秒超时，防止卡住)
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 2000);
+                        
+                        const ipRes = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+                        const ipJson = await ipRes.json();
+                        userIp = ipJson.ip;
+                        clearTimeout(timeoutId);
+                    } catch (e) {
+                        console.log("IP获取失败，跳过");
+                    }
+
+                    // 4. 调用 Supabase Edge Function
+                    try {
+                        const response = await fetch(VERIFY_FUNCTION_URL, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                            },
+                            body: JSON.stringify({ 
+                                code: cleanKey,
+                                ip: userIp,
+                                device_info: deviceInfo
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            // ★★★ 验证成功！跳转到报告页 ★★★
+                            const params = new URLSearchParams({
+                                g: gender.value,
+                                m: getAttributeKey(resultData.value.main),
+                                s: getAttributeKey(resultData.value.second),
+                                w: getAttributeKey(resultData.value.wandering),
+                                l: resultData.value.missingKey,
+                                code: cleanKey // 传递清洗后的 Key
+                            });
+                            
+                            window.location.href = `report.html?${params.toString()}`;
+                        } else {
+                            // 验证失败 (密钥无效 / 次数已满)
+                            unlockError.value = result.message || "验证失败，请检查密钥";
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        unlockError.value = "网络连接失败，请检查网络";
+                    } finally {
+                        isVerifying.value = false; // 关闭加载动画
+                    }
                 };
+                // ==========================================================
 
                 const currentQuestion = computed(() => questions.value[currentQIndex.value]);
                 const progressPercent = computed(() => questions.value.length === 0 ? 0 : ((currentQIndex.value + 1) / questions.value.length) * 100);
@@ -673,5 +745,6 @@
     </script>
 </body>
 </html>
+
 
 
